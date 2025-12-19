@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - SpriteWall
+  - ClimbWALL
   layers:
   - Default
   - TransparentFX

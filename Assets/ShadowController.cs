@@ -4,11 +4,11 @@
 [RequireComponent(typeof(Collider2D))]
 public class ShadowController : MonoBehaviour
 {
-    [Header("=== Free Movement (No Gravity) ===")]
+    [Header("=== Free Movement ===")]
     public float moveSpeed = 5f;
 
     [Header("=== Radius Limit ===")]
-    public Transform centerTarget;   // Player
+    public Transform centerTarget;
     public float maxDistance = 5f;
 
     [Header("=== Ignore Collision Tags ===")]
@@ -23,7 +23,6 @@ public class ShadowController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         shadowCollider = GetComponent<Collider2D>();
-
         rb.gravityScale = 0f;
         rb.freezeRotation = true;
     }
@@ -52,24 +51,23 @@ public class ShadowController : MonoBehaviour
 
         Vector2 center = centerTarget.position;
         Vector2 nextPos = rb.position + rb.velocity * Time.fixedDeltaTime;
-
         float dist = Vector2.Distance(center, nextPos);
+
         if (dist > maxDistance)
         {
             Vector2 dir = (nextPos - center).normalized;
             rb.position = center + dir * maxDistance;
+            rb.velocity = Vector2.zero; // หยุดความเร็วเมื่อชนขอบรัศมี
         }
     }
 
     void IgnoreCollisionWithTag(string tagName)
     {
         GameObject[] targets = GameObject.FindGameObjectsWithTag(tagName);
-
         foreach (GameObject obj in targets)
         {
             Collider2D col = obj.GetComponent<Collider2D>();
-            if (col != null)
-                Physics2D.IgnoreCollision(shadowCollider, col, true);
+            if (col != null) Physics2D.IgnoreCollision(shadowCollider, col, true);
         }
     }
 }
