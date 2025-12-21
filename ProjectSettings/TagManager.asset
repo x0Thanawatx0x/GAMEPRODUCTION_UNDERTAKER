@@ -6,6 +6,8 @@ TagManager:
   tags:
   - SpriteWall
   - ClimbWALL
+  - GhostOrb
+  - Platform
   layers:
   - Default
   - TransparentFX
