@@ -1624,6 +1624,9 @@ MonoBehaviour:
   jumpForce: 12
   normalGravity: 3
   shadowModeGravity: 0.005
+  wallSlideGravity: 0.005
+  wallSlideSpeed: 2
+  wallStickTime: 0.25
   groundCheck: {fileID: 95507739}
   groundRadius: 0.2
   groundLayer:
@@ -1798,6 +1801,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   orbitRadius: 1.5
   rotateSpeed: 120
+  returnSpeed: 5
 --- !u!114 &796752211
 MonoBehaviour:
   m_ObjectHideFlags: 0
