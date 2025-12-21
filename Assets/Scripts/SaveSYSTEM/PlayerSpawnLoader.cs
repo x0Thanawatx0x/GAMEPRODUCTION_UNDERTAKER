@@ -1,3 +1,4 @@
+﻿// ไฟล์ต้องชื่อ PlayerSpawnLoader.cs
 using UnityEngine;
 
 public class PlayerSpawnLoader : MonoBehaviour

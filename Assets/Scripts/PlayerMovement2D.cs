@@ -15,9 +15,9 @@ public class PlayerController2D : MonoBehaviour
     [Header("=== Ground & Wall Check ===")]
     [SerializeField] Transform groundCheck;
     [SerializeField] float groundRadius = 0.2f;
+    [SerializeField] LayerMask groundLayer;
     [SerializeField] Transform wallCheck;
     [SerializeField] float wallCheckRadius = 0.2f;
-    [SerializeField] LayerMask groundLayer;
 
     [Header("=== Wall Jump Settings ===")]
     [SerializeField] Vector2 wallJumpForce = new Vector2(8f, 12f);
@@ -35,10 +35,15 @@ public class PlayerController2D : MonoBehaviour
     private Rigidbody2D rb;
     private float moveInput;
     private bool isGrounded;
+    private bool wasGrounded;
     private bool isTouchingWall;
     private bool controllingShadow;
     private GameObject shadowInstance;
     private float lastShadowTime = -100f;
+
+    // ⭐ Jump Count
+    public int maxJumpCount = 1; // ปรับจาก Inspector หรือ WorldSetting
+    private int currentJumpCount;
 
     bool canSpawnShadow => Time.time >= lastShadowTime + shadowCooldown;
 
@@ -46,6 +51,12 @@ public class PlayerController2D : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = normalGravity;
+
+        // ⭐ รับค่า maxJumpCount จาก WorldSetting
+        if (WorldSetting.Instance != null)
+            maxJumpCount = WorldSetting.Instance.maxJumpCount;
+
+        currentJumpCount = maxJumpCount;
 
         if (radiusUI != null)
         {
@@ -57,14 +68,50 @@ public class PlayerController2D : MonoBehaviour
 
     void Update()
     {
+        moveInput = Input.GetAxisRaw("Horizontal");
+
+        // Ground & Wall Check
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundRadius, groundLayer);
+        Collider2D wallCollider = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, groundLayer);
+        isTouchingWall = (wallCollider != null && wallCollider.CompareTag("ClimbWALL"));
+
+        // ⭐ รีเซ็ต Jump Count เฉพาะตอนผู้เล่นลงพื้น
+        if (isGrounded && !wasGrounded)
+        {
+            currentJumpCount = maxJumpCount;
+        }
+        wasGrounded = isGrounded;
+
+        // ⭐ Jump
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (isGrounded && currentJumpCount > 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, 0f); // reset y velocity
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                currentJumpCount--;
+            }
+            else if (!isGrounded && currentJumpCount > 0) // Double jump
+            {
+                rb.velocity = new Vector2(rb.velocity.x, 0f);
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+                currentJumpCount--;
+            }
+            else if (isTouchingWall) // Wall Jump (ไม่ลด jumpCount)
+            {
+                PerformWallJump();
+            }
+        }
+
+        if (moveInput != 0)
+            transform.localScale = new Vector3(Mathf.Sign(moveInput), 1, 1);
+
+        // Shadow
         if (Input.GetKeyDown(KeyCode.F) && canSpawnShadow)
             EnterShadowMode();
 
         if (Input.GetKeyUp(KeyCode.F))
             ExitShadowMode();
-
-        if (!controllingShadow)
-            HandleInputs();
 
         if (radiusUI != null)
             radiusUI.position = transform.position;
@@ -73,35 +120,14 @@ public class PlayerController2D : MonoBehaviour
     void FixedUpdate()
     {
         if (!controllingShadow)
-            ApplyMovement();
-        else
-            rb.velocity = new Vector2(0, rb.velocity.y);
-    }
-
-    void HandleInputs()
-    {
-        moveInput = Input.GetAxisRaw("Horizontal");
-
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundRadius, groundLayer);
-        Collider2D wallCollider = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, groundLayer);
-        isTouchingWall = (wallCollider != null && wallCollider.CompareTag("ClimbWALL"));
-
-        if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (isGrounded)
-                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            else if (isTouchingWall)
-                PerformWallJump();
+            float speed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
+            rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
         }
-
-        if (moveInput != 0)
-            transform.localScale = new Vector3(Mathf.Sign(moveInput), 1, 1);
-    }
-
-    void ApplyMovement()
-    {
-        float speed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
-        rb.velocity = new Vector2(moveInput * speed, rb.velocity.y);
+        else
+        {
+            rb.velocity = new Vector2(0, rb.velocity.y);
+        }
     }
 
     void PerformWallJump()
@@ -111,14 +137,11 @@ public class PlayerController2D : MonoBehaviour
         transform.localScale = new Vector3(jumpDir, 1, 1);
     }
 
-    // ================= Shadow Mode =================
-
     void EnterShadowMode()
     {
         if (shadowInstance != null) return;
 
         rb.velocity = Vector2.zero;
-
         shadowInstance = Instantiate(shadowPrefab, shadowSpawnPoint.position, Quaternion.identity);
 
         ShadowController shadow = shadowInstance.GetComponent<ShadowController>();
@@ -129,7 +152,7 @@ public class PlayerController2D : MonoBehaviour
 
         if (radiusUI != null) radiusUI.gameObject.SetActive(true);
 
-        SetGhostOrbVisible(false); // ⭐ ซ่อน GhostOrb
+        SetGhostOrbVisible(false);
 
         controllingShadow = true;
     }
@@ -143,22 +166,18 @@ public class PlayerController2D : MonoBehaviour
         rb.gravityScale = normalGravity;
 
         Destroy(shadowInstance);
-
         lastShadowTime = Time.time;
 
         if (radiusUI != null) radiusUI.gameObject.SetActive(false);
 
-        SetGhostOrbVisible(true); // ⭐ แสดง GhostOrb
+        SetGhostOrbVisible(true);
 
         controllingShadow = false;
     }
 
-    // ================= GhostOrb Visibility =================
-
     void SetGhostOrbVisible(bool visible)
     {
         GameObject[] orbs = GameObject.FindGameObjectsWithTag("GhostOrb");
-
         foreach (GameObject orb in orbs)
         {
             SpriteRenderer sr = orb.GetComponent<SpriteRenderer>();
