@@ -6,12 +6,10 @@ public class PlayerController2D : MonoBehaviour
 {
     [Header("=== Player Movement ===")]
     [SerializeField] float walkSpeed = 4f;
-    [SerializeField] float runSpeed = 7f;
     [SerializeField] float jumpForce = 10f;
 
     [Header("=== Gravity Settings ===")]
-    [SerializeField] float normalGravity = 3f;        // ร่างจริง
-    [SerializeField] float shadowModeGravity = 0.05f; // โคลน
+    [SerializeField] float normalGravity = 3f;
     [SerializeField] float wallSlideGravity = 0.5f;
 
     [Header("=== Wall Slide Settings ===")]
@@ -38,17 +36,19 @@ public class PlayerController2D : MonoBehaviour
     [SerializeField] RectTransform radiusUI;
     [SerializeField] float uiScale = 100f;
 
-    private Rigidbody2D rb;
-    private float moveInput;
-    private bool isGrounded, wasGrounded;
-    private bool isTouchingWall, isWallSliding;
-    private bool controllingShadow;
-    private GameObject shadowInstance;
-    private float lastShadowTime = -100f;
-    private float wallStickCounter;
+    Rigidbody2D rb;
+    Vector3 originalScale;
+
+    float moveInput;
+    bool isGrounded, wasGrounded;
+    bool isTouchingWall, isWallSliding;
+    bool controllingShadow;
+    GameObject shadowInstance;
+    float lastShadowTime = -100f;
+    float wallStickCounter;
 
     public int maxJumpCount = 1;
-    private int currentJumpCount;
+    int currentJumpCount;
 
     bool canSpawnShadow => Time.time >= lastShadowTime + shadowCooldown;
 
@@ -56,6 +56,8 @@ public class PlayerController2D : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = normalGravity;
+
+        originalScale = transform.localScale;
 
         if (WorldSetting.Instance != null)
             maxJumpCount = WorldSetting.Instance.maxJumpCount;
@@ -79,7 +81,7 @@ public class PlayerController2D : MonoBehaviour
         Collider2D wallCollider = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, groundLayer);
         isTouchingWall = (wallCollider != null && wallCollider.CompareTag("ClimbWALL"));
 
-        // รีเซ็ต Jump Count
+        // Reset Jump Count
         if (isGrounded && !wasGrounded)
             currentJumpCount = maxJumpCount;
 
@@ -87,26 +89,12 @@ public class PlayerController2D : MonoBehaviour
 
         // Wall Slide
         isWallSliding = isTouchingWall && !isGrounded && moveInput != 0;
-        if (isWallSliding)
-        {
-            wallStickCounter -= Time.deltaTime;
-            rb.gravityScale = wallSlideGravity;
-        }
-        else
-        {
-            wallStickCounter = wallStickTime;
-            rb.gravityScale = normalGravity;
-        }
+        rb.gravityScale = isWallSliding ? wallSlideGravity : normalGravity;
 
-        // Jump / Double Jump / Wall Jump
+        // Jump
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (isGrounded && currentJumpCount > 0)
-            {
-                Jump(jumpForce);
-                currentJumpCount--;
-            }
-            else if (!isGrounded && currentJumpCount > 0)
+            if (currentJumpCount > 0)
             {
                 Jump(jumpForce);
                 currentJumpCount--;
@@ -117,15 +105,21 @@ public class PlayerController2D : MonoBehaviour
             }
         }
 
-        // Flip Sprite
+        // Flip
         if (moveInput != 0)
-            transform.localScale = new Vector3(Mathf.Sign(moveInput), 1, 1);
+        {
+            transform.localScale = new Vector3(
+                Mathf.Sign(moveInput) * Mathf.Abs(originalScale.x),
+                originalScale.y,
+                originalScale.z
+            );
+        }
 
-        // Shadow
-        if (Input.GetKeyDown(KeyCode.F) && canSpawnShadow)
+        // Shadow (Hold Left Shift)
+        if (Input.GetKey(KeyCode.LeftShift) && canSpawnShadow && !controllingShadow)
             EnterShadowMode();
 
-        if (Input.GetKeyUp(KeyCode.F))
+        if (!Input.GetKey(KeyCode.LeftShift) && controllingShadow)
             ExitShadowMode();
 
         if (radiusUI != null)
@@ -136,25 +130,21 @@ public class PlayerController2D : MonoBehaviour
     {
         if (!controllingShadow)
         {
-            float speed = Input.GetKey(KeyCode.LeftShift) ? runSpeed : walkSpeed;
             float targetY = rb.velocity.y;
 
-            // Smooth Wall Slide
             if (isWallSliding)
                 targetY = Mathf.Lerp(rb.velocity.y, -wallSlideSpeed, 5f * Time.fixedDeltaTime);
 
-            rb.velocity = new Vector2(moveInput * speed, targetY);
+            rb.velocity = new Vector2(moveInput * walkSpeed, targetY);
         }
         else
         {
-            // ร่างจริงหยุดนิ่ง ไม่ลด Gravity ของร่างจริง
             rb.velocity = Vector2.zero;
         }
     }
 
     void Jump(float force)
     {
-        rb.velocity = new Vector2(rb.velocity.x, 0f);
         rb.velocity = new Vector2(rb.velocity.x, force);
         rb.gravityScale = normalGravity;
     }
@@ -164,55 +154,47 @@ public class PlayerController2D : MonoBehaviour
         float jumpDir = -Mathf.Sign(transform.localScale.x);
         rb.velocity = Vector2.zero;
         rb.AddForce(new Vector2(wallJumpForce.x * jumpDir, wallJumpForce.y), ForceMode2D.Impulse);
-        transform.localScale = new Vector3(jumpDir, 1, 1);
+
+        transform.localScale = new Vector3(
+            jumpDir * Mathf.Abs(originalScale.x),
+            originalScale.y,
+            originalScale.z
+        );
+
         wallStickCounter = 0;
     }
 
     void EnterShadowMode()
     {
-        if (shadowInstance != null) return;
-
         shadowInstance = Instantiate(shadowPrefab, shadowSpawnPoint.position, Quaternion.identity);
         ShadowController shadow = shadowInstance.GetComponent<ShadowController>();
         shadow.centerTarget = transform;
         shadow.maxDistance = shadowMaxDistance;
 
-        // ✅ ร่างจริง gravity ปกติ
-        rb.gravityScale = normalGravity;
-
         if (radiusUI != null) radiusUI.gameObject.SetActive(true);
-
         SetGhostOrbVisible(false);
         controllingShadow = true;
     }
 
     void ExitShadowMode()
     {
-        if (shadowInstance == null) return;
-
         rb.velocity = Vector2.zero;
         transform.position = shadowInstance.transform.position;
-
-        // ✅ ร่างจริง gravity กลับปกติ
-        rb.gravityScale = normalGravity;
 
         Destroy(shadowInstance);
         lastShadowTime = Time.time;
 
         if (radiusUI != null) radiusUI.gameObject.SetActive(false);
-
         SetGhostOrbVisible(true);
         controllingShadow = false;
     }
 
     void SetGhostOrbVisible(bool visible)
     {
-        GameObject[] orbs = GameObject.FindGameObjectsWithTag("GhostOrb");
-        foreach (GameObject orb in orbs)
+        foreach (GameObject orb in GameObject.FindGameObjectsWithTag("GhostOrb"))
         {
             SpriteRenderer sr = orb.GetComponent<SpriteRenderer>();
-            if (sr != null)
-                sr.enabled = visible;
+            if (sr != null) sr.enabled = visible;
         }
     }
 }
