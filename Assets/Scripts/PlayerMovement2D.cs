@@ -1,12 +1,24 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController2D : MonoBehaviour
 {
+    // ⭐ QTE : คุมการเคลื่อนไหวจากภายนอก
+    public static bool canMove = true;
+
+    [Header("=== Input Keys (Inspector Editable) ===")]
+    [SerializeField] KeyCode jumpKey = KeyCode.Space;
+    [SerializeField] KeyCode dashKey = KeyCode.F;
+    [SerializeField] KeyCode shadowKey = KeyCode.LeftShift;
+
     [Header("=== Player Movement ===")]
     [SerializeField] float walkSpeed = 4f;
     [SerializeField] float jumpForce = 10f;
+
+    [Header("=== Dash Settings ===")]
+    [SerializeField] float dashSpeed = 15f;
+    [SerializeField] float dashDuration = 0.15f;
+    [SerializeField] float dashCooldown = 0.5f;
 
     [Header("=== Gravity Settings ===")]
     [SerializeField] float normalGravity = 3f;
@@ -14,12 +26,13 @@ public class PlayerController2D : MonoBehaviour
 
     [Header("=== Wall Slide Settings ===")]
     [SerializeField] float wallSlideSpeed = 2f;
-    [SerializeField] float wallStickTime = 0.25f;
 
-    [Header("=== Ground & Wall Check ===")]
-    [SerializeField] Transform groundCheck;
-    [SerializeField] float groundRadius = 0.2f;
+    [Header("=== Ground Raycast Settings ===")]
+    [SerializeField] Transform groundRayOrigin;
+    [SerializeField] float groundRayLength = 0.3f;
     [SerializeField] LayerMask groundLayer;
+
+    [Header("=== Wall Check ===")]
     [SerializeField] Transform wallCheck;
     [SerializeField] float wallCheckRadius = 0.2f;
 
@@ -40,27 +53,30 @@ public class PlayerController2D : MonoBehaviour
     Vector3 originalScale;
 
     float moveInput;
-    bool isGrounded, wasGrounded;
-    bool isTouchingWall, isWallSliding;
-    bool controllingShadow;
-    GameObject shadowInstance;
-    float lastShadowTime = -100f;
-    float wallStickCounter;
+    bool isGrounded;
+    bool wasGrounded;
+    bool isTouchingWall;
+    bool isWallSliding;
 
     public int maxJumpCount = 1;
     int currentJumpCount;
 
+    // ===== Dash =====
+    bool isDashing;
+    float dashTimer;
+    float lastDashTime = -100f;
+
+    // ===== Shadow =====
+    bool controllingShadow;
+    GameObject shadowInstance;
+    float lastShadowTime = -100f;
     bool canSpawnShadow => Time.time >= lastShadowTime + shadowCooldown;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = normalGravity;
-
         originalScale = transform.localScale;
-
-        if (WorldSetting.Instance != null)
-            maxJumpCount = WorldSetting.Instance.maxJumpCount;
 
         currentJumpCount = maxJumpCount;
 
@@ -74,38 +90,63 @@ public class PlayerController2D : MonoBehaviour
 
     void Update()
     {
+        // ⭐ QTE : ถ้าห้ามขยับ → หยุด input ทั้งหมด
+        if (!canMove)
+        {
+            rb.velocity = new Vector2(0, rb.velocity.y);
+            return;
+        }
+
         moveInput = Input.GetAxisRaw("Horizontal");
 
-        // Ground & Wall Check
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundRadius, groundLayer);
-        Collider2D wallCollider = Physics2D.OverlapCircle(wallCheck.position, wallCheckRadius, groundLayer);
-        isTouchingWall = (wallCollider != null && wallCollider.CompareTag("ClimbWALL"));
+        // ===== Ground Raycast =====
+        RaycastHit2D groundHit = Physics2D.Raycast(
+            groundRayOrigin.position,
+            Vector2.down,
+            groundRayLength,
+            groundLayer
+        );
 
-        // Reset Jump Count
+        isGrounded = groundHit.collider != null;
+
         if (isGrounded && !wasGrounded)
+        {
             currentJumpCount = maxJumpCount;
-
+        }
         wasGrounded = isGrounded;
 
-        // Wall Slide
+        // ===== Wall Check =====
+        Collider2D wallCollider = Physics2D.OverlapCircle(
+            wallCheck.position,
+            wallCheckRadius,
+            groundLayer
+        );
+
+        isTouchingWall = wallCollider != null && wallCollider.CompareTag("ClimbWALL");
+
+        // ===== Wall Slide =====
         isWallSliding = isTouchingWall && !isGrounded && moveInput != 0;
         rb.gravityScale = isWallSliding ? wallSlideGravity : normalGravity;
 
-        // Jump
-        if (Input.GetKeyDown(KeyCode.Space))
+        // ===== Jump =====
+        if (Input.GetKeyDown(jumpKey))
         {
             if (currentJumpCount > 0)
             {
-                Jump(jumpForce);
+                Jump();
                 currentJumpCount--;
             }
-            else if (isWallSliding && wallStickCounter > 0)
+            else if (isWallSliding)
             {
                 WallJump();
             }
         }
 
-        // Flip
+        // ===== Dash =====
+        if (Input.GetKeyDown(dashKey) && CanDash())
+            StartDash();
+
+        // ===== Flip =====
         if (moveInput != 0)
         {
             transform.localScale = new Vector3(
@@ -115,11 +156,11 @@ public class PlayerController2D : MonoBehaviour
             );
         }
 
-        // Shadow (Hold Left Shift)
-        if (Input.GetKey(KeyCode.LeftShift) && canSpawnShadow && !controllingShadow)
+        // ===== Shadow Mode =====
+        if (Input.GetKey(shadowKey) && canSpawnShadow && !controllingShadow)
             EnterShadowMode();
 
-        if (!Input.GetKey(KeyCode.LeftShift) && controllingShadow)
+        if (!Input.GetKey(shadowKey) && controllingShadow)
             ExitShadowMode();
 
         if (radiusUI != null)
@@ -128,6 +169,27 @@ public class PlayerController2D : MonoBehaviour
 
     void FixedUpdate()
     {
+        // ⭐ QTE : ไม่ให้ขยับ
+        if (!canMove)
+        {
+            rb.velocity = new Vector2(0, rb.velocity.y);
+            return;
+        }
+
+        // ===== Dash =====
+        if (isDashing)
+        {
+            dashTimer -= Time.fixedDeltaTime;
+            float dashDir = Mathf.Sign(transform.localScale.x);
+            rb.velocity = new Vector2(dashDir * dashSpeed, 0f);
+
+            if (dashTimer <= 0)
+                EndDash();
+
+            return;
+        }
+
+        // ===== Normal Movement =====
         if (!controllingShadow)
         {
             float targetY = rb.velocity.y;
@@ -143,25 +205,44 @@ public class PlayerController2D : MonoBehaviour
         }
     }
 
-    void Jump(float force)
+    // ================= FUNCTIONS =================
+
+    void Jump()
     {
-        rb.velocity = new Vector2(rb.velocity.x, force);
-        rb.gravityScale = normalGravity;
+        rb.velocity = new Vector2(rb.velocity.x, 0f);
+        rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
     }
 
     void WallJump()
     {
-        float jumpDir = -Mathf.Sign(transform.localScale.x);
+        float dir = -Mathf.Sign(transform.localScale.x);
         rb.velocity = Vector2.zero;
-        rb.AddForce(new Vector2(wallJumpForce.x * jumpDir, wallJumpForce.y), ForceMode2D.Impulse);
+        rb.AddForce(new Vector2(wallJumpForce.x * dir, wallJumpForce.y), ForceMode2D.Impulse);
 
         transform.localScale = new Vector3(
-            jumpDir * Mathf.Abs(originalScale.x),
+            dir * Mathf.Abs(originalScale.x),
             originalScale.y,
             originalScale.z
         );
+    }
 
-        wallStickCounter = 0;
+    bool CanDash()
+    {
+        return !isDashing && !controllingShadow && Time.time >= lastDashTime + dashCooldown;
+    }
+
+    void StartDash()
+    {
+        isDashing = true;
+        dashTimer = dashDuration;
+        lastDashTime = Time.time;
+        rb.gravityScale = 0f;
+    }
+
+    void EndDash()
+    {
+        isDashing = false;
+        rb.gravityScale = normalGravity;
     }
 
     void EnterShadowMode()
@@ -172,7 +253,6 @@ public class PlayerController2D : MonoBehaviour
         shadow.maxDistance = shadowMaxDistance;
 
         if (radiusUI != null) radiusUI.gameObject.SetActive(true);
-        SetGhostOrbVisible(false);
         controllingShadow = true;
     }
 
@@ -185,16 +265,18 @@ public class PlayerController2D : MonoBehaviour
         lastShadowTime = Time.time;
 
         if (radiusUI != null) radiusUI.gameObject.SetActive(false);
-        SetGhostOrbVisible(true);
         controllingShadow = false;
     }
 
-    void SetGhostOrbVisible(bool visible)
+    void OnDrawGizmosSelected()
     {
-        foreach (GameObject orb in GameObject.FindGameObjectsWithTag("GhostOrb"))
+        if (groundRayOrigin != null)
         {
-            SpriteRenderer sr = orb.GetComponent<SpriteRenderer>();
-            if (sr != null) sr.enabled = visible;
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(
+                groundRayOrigin.position,
+                groundRayOrigin.position + Vector3.down * groundRayLength
+            );
         }
     }
 }

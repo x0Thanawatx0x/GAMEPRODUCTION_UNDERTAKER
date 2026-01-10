@@ -1,25 +1,38 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GhostOrbManager : MonoBehaviour
 {
+    [Header("=== Orbit Settings ===")]
     public float orbitRadius = 1.5f;
     public float rotateSpeed = 120f;
-    public float returnSpeed = 5f; // ความเร็วบินกลับบ้าน
+    public float returnSpeed = 5f;
 
-    private List<Transform> orbs = new List<Transform>();
-    private float angleOffset;
+    [Header("=== Pickup Settings ===")]
+    [SerializeField] float pickupRadius = 0.8f;          // 🔴 ระยะเก็บ
+    [SerializeField] KeyCode pickupKey = KeyCode.E;       // 🔴 ปุ่มเก็บ
+    [SerializeField] float pickupCooldown = 0.2f;         // 🔴 กันดูดซ้ำ
+    [SerializeField] float facingDotThreshold = 0.3f;     // 🔴 ต้องหันหน้า
 
-    // เก็บ orb ที่กำลังบินกลับบ้าน
-    private Dictionary<Transform, Vector3> returningOrbs = new Dictionary<Transform, Vector3>();
+    List<Transform> orbs = new List<Transform>();
+    Dictionary<Transform, Vector3> returningOrbs = new Dictionary<Transform, Vector3>();
+
+    bool isPicking;
 
     void Update()
     {
-        // ================== โคจรรอบผู้เล่น ==================
+        // ===== กด E เพื่อเก็บ =====
+        if (Input.GetKeyDown(pickupKey) && !isPicking)
+        {
+            TryPickupOrb();
+        }
+
+        // ===== Orb โคจรรอบผู้เล่น =====
         if (orbs.Count > 0)
         {
-            angleOffset += rotateSpeed * Time.deltaTime;
             float angleStep = 360f / orbs.Count;
+            float angleOffset = Time.time * rotateSpeed;
 
             for (int i = 0; i < orbs.Count; i++)
             {
@@ -43,7 +56,7 @@ public class GhostOrbManager : MonoBehaviour
             }
         }
 
-        // ================== Orb "บินกลับบ้าน" ==================
+        // ===== Orb บินกลับบ้าน =====
         List<Transform> finished = new List<Transform>();
         foreach (var pair in returningOrbs)
         {
@@ -53,19 +66,15 @@ public class GhostOrbManager : MonoBehaviour
             orb.position = Vector3.MoveTowards(orb.position, home, returnSpeed * Time.deltaTime);
 
             if (Vector3.Distance(orb.position, home) < 0.01f)
-            {
-                finished.Add(orb); // ถึงบ้านแล้ว
-            }
+                finished.Add(orb);
         }
 
-        // รีเซ็ต orb ที่ถึงบ้าน
         foreach (Transform orb in finished)
         {
             returningOrbs.Remove(orb);
-            orbs.Remove(orb); // เลิกโคจรรอบผู้เล่น
+            orbs.Remove(orb);
 
-            // คืนสถานะ orb ให้สามารถเก็บได้อีก
-            orb.gameObject.tag = "GhostOrb";
+            orb.tag = "GhostOrb";
 
             if (orb.GetComponent<Collider2D>() == null)
             {
@@ -75,12 +84,34 @@ public class GhostOrbManager : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    // ================= PICKUP =================
+
+    void TryPickupOrb()
     {
-        if (other.CompareTag("GhostOrb"))
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, pickupRadius);
+
+        foreach (Collider2D hit in hits)
         {
-            AddOrb(other.gameObject);
+            if (!hit.CompareTag("GhostOrb")) continue;
+
+            // 👉 เช็คว่าหันหน้าไปทาง Orb ไหม
+            Vector2 toOrb = (hit.transform.position - transform.position).normalized;
+            Vector2 facingDir = new Vector2(Mathf.Sign(transform.localScale.x), 0f);
+
+            float dot = Vector2.Dot(facingDir, toOrb);
+            if (dot < facingDotThreshold) continue; // ❌ ไม่ได้หันหน้า
+
+            AddOrb(hit.gameObject);
+            StartCoroutine(PickupCooldown());
+            break; // ✅ เก็บได้แค่ลูกเดียว
         }
+    }
+
+    IEnumerator PickupCooldown()
+    {
+        isPicking = true;
+        yield return new WaitForSeconds(pickupCooldown);
+        isPicking = false;
     }
 
     void AddOrb(GameObject orb)
@@ -89,10 +120,12 @@ public class GhostOrbManager : MonoBehaviour
         if (orbs.Contains(t)) return;
 
         orbs.Add(t);
+        orb.tag = "Untagged"; // 🔒 กันเก็บซ้ำ
         Destroy(orb.GetComponent<Collider2D>());
     }
 
-    // ⭐ ฟังก์ชันสำคัญ
+    // ================= PUBLIC =================
+
     public int GetOrbCount()
     {
         return orbs.Count;
@@ -103,19 +136,22 @@ public class GhostOrbManager : MonoBehaviour
         return orbs;
     }
 
-    // ================== ฟังก์ชันให้ orb บินกลับบ้าน ==================
     public void ReturnOrbHome(Transform orb, Vector3 homePosition)
     {
         if (!returningOrbs.ContainsKey(orb))
-        {
             returningOrbs.Add(orb, homePosition);
-        }
     }
 
-    // ================== ลบ orb ทั้งหมด ==================
     public void ClearOrbs()
     {
         orbs.Clear();
         returningOrbs.Clear();
+    }
+
+    // ================= DEBUG =================
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, pickupRadius);
     }
 }

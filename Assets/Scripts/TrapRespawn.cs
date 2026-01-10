@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿    using System.Collections.Generic;
+    using UnityEngine;
 
 public class TrapRespawn : MonoBehaviour
 {
@@ -28,6 +28,13 @@ public class TrapRespawn : MonoBehaviour
     {
         if (!other.CompareTag(playerTag)) return;
 
+        // ================== นับ Trap ==================
+        PlayerLifeManager lifeManager = other.GetComponent<PlayerLifeManager>();
+        if (lifeManager != null)
+        {
+            lifeManager.CountTrap();
+        }
+
         // ================== Respawn Player ==================
         Vector3 respawnPos;
 
@@ -50,7 +57,13 @@ public class TrapRespawn : MonoBehaviour
 
         other.transform.position = respawnPos;
 
-        // ================== GhostOrb "บินกลับบ้าน" ==================
+        // 🔓 ปลดล็อกให้นับครั้งต่อไปได้
+        if (lifeManager != null)
+        {
+            lifeManager.ResetTrapCountLock();
+        }
+
+        // ================== GhostOrb กลับบ้าน ==================
         GhostOrbManager ghostManager = other.GetComponent<GhostOrbManager>();
         if (ghostManager != null && ghostManager.GetOrbCount() > 0)
         {

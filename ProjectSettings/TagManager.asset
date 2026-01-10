@@ -8,6 +8,7 @@ TagManager:
   - ClimbWALL
   - GhostOrb
   - Platform
+  - Trap
   layers:
   - Default
   - TransparentFX

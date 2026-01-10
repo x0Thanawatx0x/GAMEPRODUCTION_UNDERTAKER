@@ -9,7 +9,7 @@ public class WorldSetting : MonoBehaviour
     public static WorldSetting Instance;
 
     void Awake()
-    {
+    {   
         // ให้มีแค่ตัวเดียวต่อฉาก
         if (Instance == null)
             Instance = this;
