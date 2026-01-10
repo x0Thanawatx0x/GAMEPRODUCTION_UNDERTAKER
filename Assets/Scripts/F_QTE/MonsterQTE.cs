@@ -3,37 +3,33 @@
 public class MonsterQTE : MonoBehaviour
 {
     [Header("=== QTE Settings ===")]
-    public int requiredSuccessCount = 3;   // ต้องผ่านกี่ครั้ง
+    public int requiredSuccessCount = 3;
     int currentSuccessCount = 0;
 
     [Header("=== Result Prefab ===")]
-    public GameObject resultPrefab;        // prefab หลังชนะ
+    public GameObject resultPrefab;
+    public int spawnCount = 1;              // ⭐ จำนวน prefab ที่จะออก
+    public float spawnSpacing = 0.5f;       // ⭐ ระยะห่างระหว่าง prefab
 
-    bool playerInside;
+    [Header("=== Knockback Settings ===")]
+    public float knockbackForce = 8f;
+    public float disableColliderTime = 0.5f;
+
+    CircleCollider2D circleCollider;
+    bool isFinished = false;   // 🔒 ตัวล็อกสำคัญมาก
+
+    void Awake()
+    {
+        circleCollider = GetComponent<CircleCollider2D>();
+    }
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (isFinished) return;
+
         if (other.CompareTag("Player"))
         {
-            playerInside = true;
-            TryStartQTE();
-        }
-    }
-
-    void OnTriggerExit2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerInside = false;
-        }
-    }
-
-    void TryStartQTE()
-    {
-        // เรียกได้ทุกครั้งที่เข้า
-        if (QTEManager.Instance != null)
-        {
-            QTEManager.Instance.StartQTE(this);
+            QTEManager.Instance?.StartQTE(this);
         }
     }
 
@@ -41,34 +37,76 @@ public class MonsterQTE : MonoBehaviour
 
     public void OnQTESuccess()
     {
-        currentSuccessCount++;
+        if (isFinished) return;
 
-        Debug.Log($"QTE Success {currentSuccessCount}/{requiredSuccessCount}");
+        currentSuccessCount++;
+        KnockbackPlayer();
 
         if (currentSuccessCount >= requiredSuccessCount)
         {
             TransformToResult();
         }
-        else
-        {
-            // ถ้ายังไม่ครบ → ออกแล้วเข้าใหม่ จะขึ้นอีก
-        }
     }
 
     public void OnQTEFail()
     {
-        Debug.Log("QTE Failed");
-        // จะให้รีเซ็ต count หรือไม่ก็ได้
-        // currentSuccessCount = 0;
+        if (isFinished) return;
+
+        KnockbackPlayer();
     }
+
+    // ================== LOGIC ==================
 
     void TransformToResult()
     {
+        if (isFinished) return;
+        isFinished = true;
+
         if (resultPrefab != null)
         {
-            Instantiate(resultPrefab, transform.position, transform.rotation);
+            for (int i = 0; i < spawnCount; i++)
+            {
+                Vector3 offset = new Vector3(
+                    (i - (spawnCount - 1) / 2f) * spawnSpacing,
+                    0f,
+                    0f
+                );
+
+                Instantiate(
+                    resultPrefab,
+                    transform.position + offset,
+                    transform.rotation
+                );
+            }
         }
 
-        Destroy(gameObject); // ลบมอนสเตอร์ตัวเดิม
+        Destroy(gameObject);
+    }
+
+    void KnockbackPlayer()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player == null) return;
+
+        Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+        if (rb == null) return;
+
+        Vector2 dir = (player.transform.position - transform.position).normalized;
+        rb.velocity = Vector2.zero;
+        rb.AddForce(dir * knockbackForce, ForceMode2D.Impulse);
+
+        if (circleCollider != null)
+        {
+            circleCollider.enabled = false;
+            Invoke(nameof(EnableCollider), disableColliderTime);
+        }
+    }
+
+    void EnableCollider()
+    {
+        if (!isFinished && circleCollider != null)
+        {
+            circleCollider.enabled = true;
+        }
     }
 }
