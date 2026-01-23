@@ -13,8 +13,6 @@ public class CannonTurretStraight : MonoBehaviour
     public GameObject projectilePrefab;
     public float fireRate = 0.8f;
     public float bulletSpeed = 10f;
-    public float qteCooldown = 1f;   // เวลาพักหลัง QTE
-    float qteTimer = 0f;
 
     [HideInInspector]
     public bool isPlayerInQTE = false; // 🔒 ล็อกยิงตอน QTE
@@ -30,13 +28,6 @@ public class CannonTurretStraight : MonoBehaviour
     void Update()
     {
         if (player == null) return;
-
-        // ⏳ ถ้าอยู่ในช่วงพัก QTE
-        if (qteTimer > 0)
-        {
-            qteTimer -= Time.deltaTime;
-            return;
-        }
 
         // ❌ ถ้าอยู่ใน QTE → หยุดยิง
         if (isPlayerInQTE)
@@ -57,6 +48,7 @@ public class CannonTurretStraight : MonoBehaviour
             }
         }
     }
+
     void Aim()
     {
         Vector2 dir = (player.position - firePoint.position).normalized;

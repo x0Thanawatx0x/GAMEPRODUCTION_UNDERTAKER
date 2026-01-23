@@ -8,19 +8,22 @@ public class MonsterQTE : MonoBehaviour
 
     [Header("=== Result Prefab ===")]
     public GameObject resultPrefab;
-    public int spawnCount = 1;              // ⭐ จำนวน prefab ที่จะออก
-    public float spawnSpacing = 0.5f;       // ⭐ ระยะห่างระหว่าง prefab
+    public int spawnCount = 1;
+    public float spawnSpacing = 0.5f;
 
     [Header("=== Knockback Settings ===")]
     public float knockbackForce = 8f;
     public float disableColliderTime = 0.5f;
 
     CircleCollider2D circleCollider;
-    bool isFinished = false;   // 🔒 ตัวล็อกสำคัญมาก
+    bool isFinished = false;
+
+    CannonTurretStraight turret;   // 🔫 อ้างอิงป้อมปืน
 
     void Awake()
     {
         circleCollider = GetComponent<CircleCollider2D>();
+        turret = FindObjectOfType<CannonTurretStraight>(); // หา turret ในฉาก
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -29,6 +32,10 @@ public class MonsterQTE : MonoBehaviour
 
         if (other.CompareTag("Player"))
         {
+            // 🔥 สั่งป้อมหยุดยิง
+            if (turret != null)
+                turret.isPlayerInQTE = true;
+
             QTEManager.Instance?.StartQTE(this);
         }
     }
@@ -42,6 +49,10 @@ public class MonsterQTE : MonoBehaviour
         currentSuccessCount++;
         KnockbackPlayer();
 
+        // 🔫 QTE จบ → ยิงต่อ
+        if (turret != null)
+            turret.isPlayerInQTE = false;
+
         if (currentSuccessCount >= requiredSuccessCount)
         {
             TransformToResult();
@@ -53,6 +64,10 @@ public class MonsterQTE : MonoBehaviour
         if (isFinished) return;
 
         KnockbackPlayer();
+
+        // 🔫 QTE จบ → ยิงต่อ
+        if (turret != null)
+            turret.isPlayerInQTE = false;
     }
 
     // ================== LOGIC ==================
@@ -72,11 +87,7 @@ public class MonsterQTE : MonoBehaviour
                     0f
                 );
 
-                Instantiate(
-                    resultPrefab,
-                    transform.position + offset,
-                    transform.rotation
-                );
+                Instantiate(resultPrefab, transform.position + offset, transform.rotation);
             }
         }
 
