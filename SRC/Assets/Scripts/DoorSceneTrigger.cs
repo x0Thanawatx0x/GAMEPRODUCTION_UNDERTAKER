@@ -1,37 +1,34 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class DoorSceneTrigger : MonoBehaviour
 {
-    [Header("Setting")]
-    public string playerTag = "Player";
-
-    [Header("Requirement")]
-    public int requiredOrbAmount = 1;
-
-    [Header("Scene")]
-    public string nextSceneName;
+    public int requiredOrbAmount = 3;   // ต้องมีอย่างน้อยกี่วิญญาณถึงจะผ่าน
+    public UpgradeManager upgradeManager; // ลากใส่ใน Inspector
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!other.CompareTag(playerTag))
-            return;
-
         GhostOrbManager orbManager = other.GetComponent<GhostOrbManager>();
+        PlayerLifeManager lifeManager = other.GetComponent<PlayerLifeManager>();
 
-        if (orbManager == null)
-        {
-            Debug.LogWarning("Player has no GhostOrbManager!");
-            return;
-        }
+        if (orbManager == null || lifeManager == null) return;
 
         if (orbManager.GetOrbCount() >= requiredOrbAmount)
         {
-            SceneManager.LoadScene(nextSceneName);
+            // 🔥 แปลง Ghost → Money
+            lifeManager.ConvertGhostToMoney();
+
+            // ล้าง orb รอบตัวผู้เล่น
+            orbManager.ClearOrbs();
+
+            // 🃏 เปิด Panel การ์ด
+            if (upgradeManager != null)
+                upgradeManager.ShowUpgradePanel();
+
+            Debug.Log("ผ่านละ! แปลงวิญญาณเป็นเงินแล้ว + เปิดการ์ด");
         }
         else
         {
-            Debug.Log($"Need {requiredOrbAmount} GhostOrb, but player has {orbManager.GetOrbCount()}");
+            Debug.Log("วิญญาณยังไม่พอ");
         }
     }
 }

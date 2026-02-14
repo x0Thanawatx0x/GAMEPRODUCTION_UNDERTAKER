@@ -1,5 +1,5 @@
-﻿    using System.Collections.Generic;
-    using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class TrapRespawn : MonoBehaviour
 {
@@ -16,6 +16,7 @@ public class TrapRespawn : MonoBehaviour
         // เก็บตำแหน่ง original ของ GhostOrb ทั้งหมดใน Scene
         GameObject[] orbs = GameObject.FindGameObjectsWithTag("GhostOrb");
         ghostOrbOriginals.Clear();
+
         foreach (GameObject orb in orbs)
         {
             GameObject temp = new GameObject("OrbOriginalPos");
@@ -28,11 +29,12 @@ public class TrapRespawn : MonoBehaviour
     {
         if (!other.CompareTag(playerTag)) return;
 
-        // ================== นับ Trap ==================
+        // ================== UI Manager ==================
         PlayerLifeManager lifeManager = other.GetComponent<PlayerLifeManager>();
         if (lifeManager != null)
         {
-            lifeManager.CountTrap();
+            lifeManager.CountTrap();     // นับ trap
+            lifeManager.ResetGhost();    // 🔥 reset ghost = 0
         }
 
         // ================== Respawn Player ==================
@@ -67,11 +69,15 @@ public class TrapRespawn : MonoBehaviour
         GhostOrbManager ghostManager = other.GetComponent<GhostOrbManager>();
         if (ghostManager != null && ghostManager.GetOrbCount() > 0)
         {
-            List<Transform> playerOrbs = new List<Transform>(ghostManager.GetOrbitingOrbs());
+            List<Transform> playerOrbs =
+                new List<Transform>(ghostManager.GetOrbitingOrbs());
 
             for (int i = 0; i < playerOrbs.Count && i < ghostOrbOriginals.Count; i++)
             {
-                ghostManager.ReturnOrbHome(playerOrbs[i], ghostOrbOriginals[i].position);
+                ghostManager.ReturnOrbHome(
+                    playerOrbs[i],
+                    ghostOrbOriginals[i].position
+                );
             }
         }
     }

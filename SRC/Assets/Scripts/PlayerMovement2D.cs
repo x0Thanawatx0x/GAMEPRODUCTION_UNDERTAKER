@@ -1,24 +1,18 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController2D : MonoBehaviour
 {
-    // ⭐ QTE : คุมการเคลื่อนไหวจากภายนอก
     public static bool canMove = true;
 
-    [Header("=== Input Keys (Inspector Editable) ===")]
+    [Header("=== Input Keys ===")]
     [SerializeField] KeyCode jumpKey = KeyCode.Space;
-    [SerializeField] KeyCode dashKey = KeyCode.F;
     [SerializeField] KeyCode shadowKey = KeyCode.LeftShift;
 
     [Header("=== Player Movement ===")]
     [SerializeField] float walkSpeed = 4f;
     [SerializeField] float jumpForce = 10f;
-
-    [Header("=== Dash Settings ===")]
-    [SerializeField] float dashSpeed = 15f;
-    [SerializeField] float dashDuration = 0.15f;
-    [SerializeField] float dashCooldown = 0.5f;
 
     [Header("=== Gravity Settings ===")]
     [SerializeField] float normalGravity = 3f;
@@ -27,7 +21,7 @@ public class PlayerController2D : MonoBehaviour
     [Header("=== Wall Slide Settings ===")]
     [SerializeField] float wallSlideSpeed = 2f;
 
-    [Header("=== Ground Raycast Settings ===")]
+    [Header("=== Ground Check ===")]
     [SerializeField] Transform groundRayOrigin;
     [SerializeField] float groundRayLength = 0.3f;
     [SerializeField] LayerMask groundLayer;
@@ -36,7 +30,7 @@ public class PlayerController2D : MonoBehaviour
     [SerializeField] Transform wallCheck;
     [SerializeField] float wallCheckRadius = 0.2f;
 
-    [Header("=== Wall Jump Settings ===")]
+    [Header("=== Wall Jump ===")]
     [SerializeField] Vector2 wallJumpForce = new Vector2(8f, 12f);
 
     [Header("=== Shadow Settings ===")]
@@ -45,9 +39,8 @@ public class PlayerController2D : MonoBehaviour
     [SerializeField] float shadowMaxDistance = 5f;
     [SerializeField] float shadowCooldown = 5f;
 
-    [Header("=== Shadow Radius UI (World Space) ===")]
-    [SerializeField] RectTransform radiusUI;
-    [SerializeField] float uiScale = 100f;
+    [Header("=== Shadow Cooldown UI (Radial) ===")]
+    [SerializeField] Image shadowCooldownCircle;
 
     Rigidbody2D rb;
     Vector3 originalScale;
@@ -61,11 +54,6 @@ public class PlayerController2D : MonoBehaviour
     public int maxJumpCount = 1;
     int currentJumpCount;
 
-    // ===== Dash =====
-    bool isDashing;
-    float dashTimer;
-    float lastDashTime = -100f;
-
     // ===== Shadow =====
     bool controllingShadow;
     GameObject shadowInstance;
@@ -77,20 +65,14 @@ public class PlayerController2D : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         rb.gravityScale = normalGravity;
         originalScale = transform.localScale;
-
         currentJumpCount = maxJumpCount;
 
-        if (radiusUI != null)
-        {
-            float diameter = shadowMaxDistance * 2f * uiScale;
-            radiusUI.sizeDelta = new Vector2(diameter, diameter);
-            radiusUI.gameObject.SetActive(false);
-        }
+        if (shadowCooldownCircle != null)
+            shadowCooldownCircle.fillAmount = 1f; // พร้อมใช้ตอนเริ่ม
     }
 
     void Update()
     {
-        // ⭐ QTE : ถ้าห้ามขยับ → หยุด input ทั้งหมด
         if (!canMove)
         {
             rb.velocity = new Vector2(0, rb.velocity.y);
@@ -99,20 +81,18 @@ public class PlayerController2D : MonoBehaviour
 
         moveInput = Input.GetAxisRaw("Horizontal");
 
-        // ===== Ground Raycast =====
+        // ===== Ground Check =====
         RaycastHit2D groundHit = Physics2D.Raycast(
             groundRayOrigin.position,
             Vector2.down,
             groundRayLength,
             groundLayer
         );
-
         isGrounded = groundHit.collider != null;
 
         if (isGrounded && !wasGrounded)
-        {
             currentJumpCount = maxJumpCount;
-        }
+
         wasGrounded = isGrounded;
 
         // ===== Wall Check =====
@@ -121,7 +101,6 @@ public class PlayerController2D : MonoBehaviour
             wallCheckRadius,
             groundLayer
         );
-
         isTouchingWall = wallCollider != null && wallCollider.CompareTag("ClimbWALL");
 
         // ===== Wall Slide =====
@@ -142,10 +121,6 @@ public class PlayerController2D : MonoBehaviour
             }
         }
 
-        // ===== Dash =====
-        if (Input.GetKeyDown(dashKey) && CanDash())
-            StartDash();
-
         // ===== Flip =====
         if (moveInput != 0)
         {
@@ -156,40 +131,24 @@ public class PlayerController2D : MonoBehaviour
             );
         }
 
-        // ===== Shadow Mode =====
+        // ===== Shadow =====
         if (Input.GetKey(shadowKey) && canSpawnShadow && !controllingShadow)
             EnterShadowMode();
 
         if (!Input.GetKey(shadowKey) && controllingShadow)
             ExitShadowMode();
 
-        if (radiusUI != null)
-            radiusUI.position = transform.position;
+        UpdateShadowCooldownUI();
     }
 
     void FixedUpdate()
     {
-        // ⭐ QTE : ไม่ให้ขยับ
         if (!canMove)
         {
             rb.velocity = new Vector2(0, rb.velocity.y);
             return;
         }
 
-        // ===== Dash =====
-        if (isDashing)
-        {
-            dashTimer -= Time.fixedDeltaTime;
-            float dashDir = Mathf.Sign(transform.localScale.x);
-            rb.velocity = new Vector2(dashDir * dashSpeed, 0f);
-
-            if (dashTimer <= 0)
-                EndDash();
-
-            return;
-        }
-
-        // ===== Normal Movement =====
         if (!controllingShadow)
         {
             float targetY = rb.velocity.y;
@@ -226,24 +185,7 @@ public class PlayerController2D : MonoBehaviour
         );
     }
 
-    bool CanDash()
-    {
-        return !isDashing && !controllingShadow && Time.time >= lastDashTime + dashCooldown;
-    }
-
-    void StartDash()
-    {
-        isDashing = true;
-        dashTimer = dashDuration;
-        lastDashTime = Time.time;
-        rb.gravityScale = 0f;
-    }
-
-    void EndDash()
-    {
-        isDashing = false;
-        rb.gravityScale = normalGravity;
-    }
+    // ===== Shadow =====
 
     void EnterShadowMode()
     {
@@ -252,7 +194,6 @@ public class PlayerController2D : MonoBehaviour
         shadow.centerTarget = transform;
         shadow.maxDistance = shadowMaxDistance;
 
-        if (radiusUI != null) radiusUI.gameObject.SetActive(true);
         controllingShadow = true;
     }
 
@@ -262,21 +203,18 @@ public class PlayerController2D : MonoBehaviour
         transform.position = shadowInstance.transform.position;
 
         Destroy(shadowInstance);
-        lastShadowTime = Time.time;
+        lastShadowTime = Time.time; // เริ่มคูลดาวน์
 
-        if (radiusUI != null) radiusUI.gameObject.SetActive(false);
         controllingShadow = false;
     }
 
-    void OnDrawGizmosSelected()
+    // ===== Radial Cooldown =====
+    void UpdateShadowCooldownUI()
     {
-        if (groundRayOrigin != null)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawLine(
-                groundRayOrigin.position,
-                groundRayOrigin.position + Vector3.down * groundRayLength
-            );
-        }
+        if (shadowCooldownCircle == null) return;
+
+        float elapsed = Time.time - lastShadowTime;
+        float value = Mathf.Clamp01(elapsed / shadowCooldown);
+        shadowCooldownCircle.fillAmount = value;
     }
 }

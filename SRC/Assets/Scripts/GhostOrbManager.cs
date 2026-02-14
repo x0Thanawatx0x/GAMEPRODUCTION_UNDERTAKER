@@ -10,15 +10,21 @@ public class GhostOrbManager : MonoBehaviour
     public float returnSpeed = 5f;
 
     [Header("=== Pickup Settings ===")]
-    [SerializeField] float pickupRadius = 0.8f;          // 🔴 ระยะเก็บ
-    [SerializeField] KeyCode pickupKey = KeyCode.E;       // 🔴 ปุ่มเก็บ
-    [SerializeField] float pickupCooldown = 0.2f;         // 🔴 กันดูดซ้ำ
-    [SerializeField] float facingDotThreshold = 0.3f;     // 🔴 ต้องหันหน้า
+    [SerializeField] float pickupRadius = 0.8f;
+    [SerializeField] KeyCode pickupKey = KeyCode.E;
+    [SerializeField] float pickupCooldown = 0.2f;
+    [SerializeField] float facingDotThreshold = 0.3f;
 
     List<Transform> orbs = new List<Transform>();
     Dictionary<Transform, Vector3> returningOrbs = new Dictionary<Transform, Vector3>();
 
     bool isPicking;
+    PlayerLifeManager lifeManager;   // 🔗 UI Manager
+
+    void Start()
+    {
+        lifeManager = FindObjectOfType<PlayerLifeManager>();
+    }
 
     void Update()
     {
@@ -94,16 +100,15 @@ public class GhostOrbManager : MonoBehaviour
         {
             if (!hit.CompareTag("GhostOrb")) continue;
 
-            // 👉 เช็คว่าหันหน้าไปทาง Orb ไหม
             Vector2 toOrb = (hit.transform.position - transform.position).normalized;
             Vector2 facingDir = new Vector2(Mathf.Sign(transform.localScale.x), 0f);
 
             float dot = Vector2.Dot(facingDir, toOrb);
-            if (dot < facingDotThreshold) continue; // ❌ ไม่ได้หันหน้า
+            if (dot < facingDotThreshold) continue;
 
             AddOrb(hit.gameObject);
             StartCoroutine(PickupCooldown());
-            break; // ✅ เก็บได้แค่ลูกเดียว
+            break;
         }
     }
 
@@ -120,8 +125,12 @@ public class GhostOrbManager : MonoBehaviour
         if (orbs.Contains(t)) return;
 
         orbs.Add(t);
-        orb.tag = "Untagged"; // 🔒 กันเก็บซ้ำ
+        orb.tag = "Untagged";
         Destroy(orb.GetComponent<Collider2D>());
+
+        // 🔔 เพิ่มจำนวนวิญญาณใน UI
+        if (lifeManager != null)
+            lifeManager.AddGhost(1);
     }
 
     // ================= PUBLIC =================
@@ -148,7 +157,6 @@ public class GhostOrbManager : MonoBehaviour
         returningOrbs.Clear();
     }
 
-    // ================= DEBUG =================
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
