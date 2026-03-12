@@ -53,6 +53,7 @@ public class PlayerController2D : MonoBehaviour
 
     public int maxJumpCount = 1;
     int currentJumpCount;
+    public static bool isInShadowMode;
 
     // ===== Shadow =====
     bool controllingShadow;
@@ -195,6 +196,7 @@ public class PlayerController2D : MonoBehaviour
         shadow.maxDistance = shadowMaxDistance;
 
         controllingShadow = true;
+        isInShadowMode = true; 
     }
 
     void ExitShadowMode()
@@ -203,11 +205,11 @@ public class PlayerController2D : MonoBehaviour
         transform.position = shadowInstance.transform.position;
 
         Destroy(shadowInstance);
-        lastShadowTime = Time.time; // เริ่มคูลดาวน์
+        lastShadowTime = Time.time;
 
         controllingShadow = false;
+        isInShadowMode = false; 
     }
-
     // ===== Radial Cooldown =====
     void UpdateShadowCooldownUI()
     {

@@ -15,7 +15,10 @@ public class PlayerLifeManager : MonoBehaviour
 
     [Header("Money")]
     public int money = 0;
-    public int moneyPerGhost = 10;   // 1 วิญญาณ = กี่เงิน
+    public int moneyPerGhost = 10;
+
+    [Header("Animation")]
+    public Animator playerAnimator;
 
     [Header("UI")]
     public TextMeshProUGUI timeText;
@@ -26,6 +29,10 @@ public class PlayerLifeManager : MonoBehaviour
     void Start()
     {
         playTime = 0f;
+
+        if (playerAnimator == null)
+            playerAnimator = GetComponent<Animator>();
+
         UpdateTrapUI();
         UpdateGhostUI();
         UpdateMoneyUI();
@@ -83,13 +90,17 @@ public class PlayerLifeManager : MonoBehaviour
         UpdateGhostUI();
     }
 
+    public int GetGhost()
+    {
+        return ghostCount;
+    }
+
     // ===== MONEY =====
     void UpdateMoneyUI()
     {
         moneyText.text = $"Money : {money}";
     }
 
-    // 🔥 ฟังก์ชันแปลง Ghost → Money
     public void ConvertGhostToMoney()
     {
         int earned = ghostCount * moneyPerGhost;
@@ -99,5 +110,13 @@ public class PlayerLifeManager : MonoBehaviour
         UpdateMoneyUI();
         UpdateGhostUI();
     }
+
+    // ===== PLAY PRAY ANIMATION =====
+    public void PlayPrayAnimation(string animationName)
+    {
+        if (playerAnimator != null)
+        {
+            playerAnimator.Play(animationName, 0, 0f);
+        }
+    }
 }
-    
