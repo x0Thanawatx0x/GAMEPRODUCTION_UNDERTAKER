@@ -881,10 +881,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 2854732034466984225}
-  normalZoom: 5
+  cameraOffset: {x: 0, y: 2}
+  smoothTimeX: 0.15
+  smoothTimeY: 0.4
+  zoomInSize: 5
   zoomOutSize: 2
   zoomDuration: 0.5
-  idleTime: 0.5
+  zoomOutDelay: 1.5
 --- !u!1 &408912538
 GameObject:
   m_ObjectHideFlags: 0
@@ -3955,13 +3958,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e9b487c26789544bab221ae6a328610, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  orbitRadius: 1.5
-  rotateSpeed: 120
-  returnSpeed: 5
   pickupRadius: 0.8
   pickupKey: 101
   pickupCooldown: 0.2
-  facingDotThreshold: 0.3
+  fadeDuration: 0.5
+  pickupUI: {fileID: 0}
 --- !u!1 &1566200381398020412
 GameObject:
   m_ObjectHideFlags: 0
@@ -4689,6 +4690,7 @@ MonoBehaviour:
   ghostCount: 0
   money: 0
   moneyPerGhost: 10
+  playerAnimator: {fileID: 0}
   timeText: {fileID: 1192798761}
   trapCountText: {fileID: 1521055754}
   ghostCountText: {fileID: 1316226094}
