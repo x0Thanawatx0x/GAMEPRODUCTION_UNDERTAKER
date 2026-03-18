@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 185aa87293d953f48a9933b79dd788c0
+guid: 128da9ec856a32649a61e09abbe6570d
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -43,7 +43,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -121,91 +121,7 @@ TextureImporter:
     forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
-    sprites:
-    - serializedVersion: 2
-      name: Soul_0
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 2920
-        height: 4178
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 50805bf2c4d555a4f880a00f8911d373
-      internalID: -1976653962
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Soul_1
-      rect:
-        serializedVersion: 2
-        x: 2920
-        y: 0
-        width: 2920
-        height: 4178
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 852a69f806be3de4ba3a08ed8d9e4716
-      internalID: -1103085265
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Soul_2
-      rect:
-        serializedVersion: 2
-        x: 5840
-        y: 0
-        width: 2920
-        height: 4178
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: b483b32b8c1699f409fdf467efb77557
-      internalID: -949141455
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Soul_3
-      rect:
-        serializedVersion: 2
-        x: 8760
-        y: 0
-        width: 2920
-        height: 4178
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 3729244a25a454c4b9faf01d66db5dcd
-      internalID: 997617908
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
+    sprites: []
     outline: []
     physicsShape: []
     bones: []
@@ -216,11 +132,7 @@ TextureImporter:
     edges: []
     weights: []
     secondaryTextures: []
-    nameFileIdTable:
-      Soul_0: -1976653962
-      Soul_1: -1103085265
-      Soul_2: -949141455
-      Soul_3: 997617908
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

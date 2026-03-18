@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 67d1991cf7d234d43a00c911a17337aa
+guid: 03be2e00383ef82428ed1e68ae82a475
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -123,7 +123,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Monster_Charge_0
+      name: ATTACKM_0
       rect:
         serializedVersion: 2
         x: 0
@@ -137,14 +137,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c3cd1c1de42e71d46ac8eb11ce1ee544
-      internalID: 1392110112
+      spriteID: 799460d3eadcc5b41984c83283de5301
+      internalID: 96755624
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_1
+      name: ATTACKM_1
       rect:
         serializedVersion: 2
         x: 564
@@ -158,14 +158,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 72cf715a3ee402044a77e533ebb79835
-      internalID: 8624850
+      spriteID: a4654b25114b8e5498bab4ce0cc068a9
+      internalID: 1034508902
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_2
+      name: ATTACKM_2
       rect:
         serializedVersion: 2
         x: 1128
@@ -179,14 +179,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6b693cf4599da234c820634d6505e01b
-      internalID: -752242543
+      spriteID: b5f2cce4d4940b347b7fe8ce168c71fd
+      internalID: -1009868264
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_3
+      name: ATTACKM_3
       rect:
         serializedVersion: 2
         x: 1692
@@ -200,14 +200,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3411a494344a3f845b6b6a8341163a07
-      internalID: 1816905209
+      spriteID: 9cafff1807b257f458c816f1dd877e77
+      internalID: -1509877271
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_4
+      name: ATTACKM_4
       rect:
         serializedVersion: 2
         x: 2256
@@ -221,14 +221,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 88f2f80c75e0a5442b22a194ecbf26e2
-      internalID: 587559619
+      spriteID: b823f5e5c2f48c64a8a2696ef5b4ce73
+      internalID: -542784458
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_5
+      name: ATTACKM_5
       rect:
         serializedVersion: 2
         x: 0
@@ -242,14 +242,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7404d81c470b26a43a3ce40265a98647
-      internalID: -110290474
+      spriteID: 474b8a9e532441e499a4a0058f15cee8
+      internalID: 1357221452
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_6
+      name: ATTACKM_6
       rect:
         serializedVersion: 2
         x: 564
@@ -263,17 +263,17 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a916954c2521178499eff47a3fb1f1dc
-      internalID: -676856778
+      spriteID: 3c1194c2001482740a333a2ab6379f4a
+      internalID: -1888051020
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_7
+      name: ATTACKM_7
       rect:
         serializedVersion: 2
-        x: 1131
+        x: 1128
         y: 814
         width: 564
         height: 814
@@ -284,14 +284,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 510cb70f020c3b248a2eacb8950739fb
-      internalID: -1773196792
+      spriteID: 1e279b10dc0526c4fb5e6424285b32ff
+      internalID: -2022914159
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_8
+      name: ATTACKM_8
       rect:
         serializedVersion: 2
         x: 1692
@@ -305,14 +305,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 351617c81a3ede04a878b3b9e80be3e5
-      internalID: -1163229174
+      spriteID: 3f5f6aa6409072b43ba8bc12a7d53aa9
+      internalID: -439269170
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_9
+      name: ATTACKM_9
       rect:
         serializedVersion: 2
         x: 2256
@@ -326,14 +326,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 917aaf38e9ca08f458bde4d2dfdd1592
-      internalID: -2137282001
+      spriteID: 783601b11b3be32439c573c831b84f03
+      internalID: 1164475182
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_10
+      name: ATTACKM_10
       rect:
         serializedVersion: 2
         x: 0
@@ -347,14 +347,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: df26e95c61f520b4f82d3151b91a4790
-      internalID: -289972729
+      spriteID: 5419b9d60a9a9014a8950147eaaa937f
+      internalID: 2096874965
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Monster_Charge_11
+      name: ATTACKM_11
       rect:
         serializedVersion: 2
         x: 564
@@ -368,8 +368,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 492b4c0c2b3d56545a24a3fb74cc2f78
-      internalID: -550769000
+      spriteID: 76b654921667306479d78d9c455a03c1
+      internalID: -1792844779
       vertices: []
       indices: 
       edges: []
@@ -385,18 +385,18 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Monster_Charge_0: 1392110112
-      Monster_Charge_1: 8624850
-      Monster_Charge_10: -289972729
-      Monster_Charge_11: -550769000
-      Monster_Charge_2: -752242543
-      Monster_Charge_3: 1816905209
-      Monster_Charge_4: 587559619
-      Monster_Charge_5: -110290474
-      Monster_Charge_6: -676856778
-      Monster_Charge_7: -1773196792
-      Monster_Charge_8: -1163229174
-      Monster_Charge_9: -2137282001
+      ATTACKM_0: 96755624
+      ATTACKM_1: 1034508902
+      ATTACKM_10: 2096874965
+      ATTACKM_11: -1792844779
+      ATTACKM_2: -1009868264
+      ATTACKM_3: -1509877271
+      ATTACKM_4: -542784458
+      ATTACKM_5: 1357221452
+      ATTACKM_6: -1888051020
+      ATTACKM_7: -2022914159
+      ATTACKM_8: -439269170
+      ATTACKM_9: 1164475182
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

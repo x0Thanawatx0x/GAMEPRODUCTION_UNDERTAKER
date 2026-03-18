@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class TrapRespawn : MonoBehaviour
 {
@@ -10,18 +9,25 @@ public class TrapRespawn : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        Debug.Log("Something entered trap: " + other.name);
+
         if (!other.CompareTag(playerTag)) return;
 
-        // ================= UI Manager =================
+        Debug.Log("Player hit trap!");
+
         PlayerLifeManager lifeManager = other.GetComponent<PlayerLifeManager>();
 
         if (lifeManager != null)
         {
-            lifeManager.CountTrap();   // นับจำนวนครั้งที่ตก Trap
-            lifeManager.ResetGhost();  // รีเซ็ต Ghost = 0
+            Debug.Log("Counting trap and resetting ghost");
+            lifeManager.CountTrap();
+            lifeManager.ResetGhost();
         }
 
-        // ================= Respawn Position =================
+        // ⭐ Respawn Ghost Orbs
+        Debug.Log("Respawning all Ghost Orbs...");
+        GhostOrbRespawn.RespawnAll();
+
         Vector3 respawnPos;
 
         if (PlayerPrefs.HasKey("PlayerX"))
@@ -31,26 +37,19 @@ public class TrapRespawn : MonoBehaviour
             float z = PlayerPrefs.GetFloat("PlayerZ");
 
             respawnPos = new Vector3(x, y, z);
+            Debug.Log("Respawn from PlayerPrefs: " + respawnPos);
         }
         else
         {
-            if (originalSpawnPoint == null)
-            {
-                Debug.LogError("Original Spawn Point not assigned!");
-                return;
-            }
-
             respawnPos = originalSpawnPoint.position;
+            Debug.Log("Respawn from original spawn point: " + respawnPos);
         }
 
-        // บันทึกตำแหน่ง respawn ชั่วคราว
-        PlayerPrefs.SetFloat("PlayerX", respawnPos.x);
-        PlayerPrefs.SetFloat("PlayerY", respawnPos.y);
-        PlayerPrefs.SetFloat("PlayerZ", respawnPos.z);
+        other.transform.position = respawnPos;
 
-        PlayerPrefs.Save();
-
-        // ================= Reload Scene =================
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        if (lifeManager != null)
+        {
+            lifeManager.ResetTrapCountLock();
+        }
     }
 }

@@ -3,15 +3,15 @@ using UnityEngine;
 
 public class GhostOrbManager : MonoBehaviour
 {
-    [Header("=== Pickup Settings ===")]
+    [Header("Pickup Settings")]
     [SerializeField] float pickupRadius = 0.8f;
     [SerializeField] KeyCode pickupKey = KeyCode.E;
     [SerializeField] float pickupCooldown = 0.2f;
 
-    [Header("=== Fade Settings ===")]
+    [Header("Fade Settings")]
     [SerializeField] float fadeDuration = 0.5f;
 
-    [Header("=== UI ===")]
+    [Header("UI")]
     public GameObject pickupUI;
 
     bool isPicking;
@@ -34,18 +34,16 @@ public class GhostOrbManager : MonoBehaviour
             TryPickupOrb();
         }
 
-        // 🔒 ล็อก UI ไม่ให้ Flip ตาม Player
         if (pickupUI != null)
         {
             float direction = Mathf.Sign(transform.localScale.x);
 
             pickupUI.transform.localScale = new Vector3(
-                   6f * direction,
-    6f,
-    1f
+                6f * direction,
+                6f,
+                1f
             );
         }
-    
     }
 
     void CheckNearbyOrb()
@@ -75,7 +73,7 @@ public class GhostOrbManager : MonoBehaviour
         {
             if (!hit.CompareTag("GhostOrb")) continue;
 
-            StartCoroutine(FadeAndDestroy(hit.gameObject));
+            StartCoroutine(FadeAndCollect(hit.gameObject));
 
             if (lifeManager != null)
                 lifeManager.AddGhost(1);
@@ -92,15 +90,13 @@ public class GhostOrbManager : MonoBehaviour
         isPicking = false;
     }
 
-    IEnumerator FadeAndDestroy(GameObject orb)
+    IEnumerator FadeAndCollect(GameObject orb)
     {
         SpriteRenderer sr = orb.GetComponent<SpriteRenderer>();
+        GhostOrbRespawn respawn = orb.GetComponent<GhostOrbRespawn>();
 
         if (sr == null)
-        {
-            Destroy(orb);
             yield break;
-        }
 
         float time = 0f;
         Color startColor = sr.color;
@@ -111,11 +107,13 @@ public class GhostOrbManager : MonoBehaviour
             float alpha = Mathf.Lerp(1f, 0f, time / fadeDuration);
 
             sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
-
             yield return null;
         }
 
-        Destroy(orb);
+        if (respawn != null)
+            respawn.Collect();
+        else
+            orb.SetActive(false);
     }
 
     void OnDrawGizmosSelected()

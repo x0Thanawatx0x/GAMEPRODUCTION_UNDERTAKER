@@ -8,13 +8,12 @@ public class PlayerControllerMain : MonoBehaviour
 {
     public bool canMove = true;
 
-    [Header("=== Movement ===")]
-    [SerializeField] float walkSpeed = 4f;
-    [SerializeField] float jumpForce = 10f;
+    [Header("=== Player Stats ===")]
+    [SerializeField] PlayerStats playerStats;
 
     [Header("=== Ground Check ===")]
     [SerializeField] Transform groundRayOrigin;
-    [SerializeField] float groundRayLength = 0.3f;
+    [SerializeField] float groundRayLength = 0.4f;
     [SerializeField] LayerMask groundLayer;
 
     [Header("=== Wall Check ===")]
@@ -42,23 +41,10 @@ public class PlayerControllerMain : MonoBehaviour
     [SerializeField] float landingVolume = 1f;
     [SerializeField] float minLandingVelocity = -6f;
 
-    [Header("=== Clone Range & Cooldown ===")]
-    [SerializeField] float cooldownDuration = 5f;
-
     [Header("=== Clone Cooldown UI (Radial) ===")]
     [SerializeField] Image cloneCooldownCircle;
 
     private float lastCloneTime = -999f;
-
-    public bool CanUseClone()
-    {
-        return Time.time >= lastCloneTime + cooldownDuration;
-    }
-
-    public void StartCloneCooldown()
-    {
-        lastCloneTime = Time.time;
-    }
 
     Rigidbody2D rb;
     AudioSource audioSource;
@@ -72,10 +58,22 @@ public class PlayerControllerMain : MonoBehaviour
     bool isFacingRight = true;
 
     int wallSide;
+
+    Vector2 groundNormal = Vector2.up;
+
     ParticleSystem.EmissionModule smokeEmission;
 
-    // 🔒 ล็อค animation (เพิ่มใหม่)
     bool lockAnimation = false;
+
+    public bool CanUseClone()
+    {
+        return Time.time >= lastCloneTime + playerStats.bodySwapCooldown;
+    }
+
+    public void StartCloneCooldown()
+    {
+        lastCloneTime = Time.time;
+    }
 
     void Start()
     {
@@ -109,34 +107,119 @@ public class PlayerControllerMain : MonoBehaviour
         UpdateCloneCooldownUI();
     }
 
-    void UpdateCloneCooldownUI()
-    {
-        if (cloneCooldownCircle == null) return;
-
-        float elapsed = Time.time - lastCloneTime;
-        float value = Mathf.Clamp01(elapsed / cooldownDuration);
-        cloneCooldownCircle.fillAmount = value;
-    }
-
     void FixedUpdate()
     {
         if (!canMove) return;
 
         if (isTouchingWall && !isGrounded && rb.velocity.y <= 0)
+        {
             rb.velocity = new Vector2(0, -wallSlideSpeed);
+        }
         else
-            rb.velocity = new Vector2(moveInput * walkSpeed, rb.velocity.y);
+        {
+            if (isGrounded)
+            {
+                Vector2 slopeDir = new Vector2(groundNormal.y, -groundNormal.x);
+
+                rb.velocity = new Vector2(
+                    slopeDir.x * moveInput * playerStats.runSpeed,
+                    rb.velocity.y
+                );
+            }
+            else
+            {
+                rb.velocity = new Vector2(moveInput * playerStats.runSpeed, rb.velocity.y);
+            }
+        }
     }
 
-    public void EnableControl(bool value)
+    void GroundCheck()
     {
-        canMove = value;
-        if (!value) rb.velocity = Vector2.zero;
+        RaycastHit2D hit = Physics2D.Raycast(
+            groundRayOrigin.position,
+            Vector2.down,
+            groundRayLength,
+            groundLayer
+        );
+
+        if (hit.collider != null)
+        {
+            isGrounded = true;
+            groundNormal = hit.normal;
+        }
+        else
+        {
+            isGrounded = false;
+            groundNormal = Vector2.up;
+        }
+
+        Debug.DrawRay(groundRayOrigin.position, Vector2.down * groundRayLength, Color.red);
+    }
+
+    void HandleJumpInput()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (isGrounded)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                rb.AddForce(Vector2.up * playerStats.jumpForce, ForceMode2D.Impulse);
+            }
+            else if (isTouchingWall && wallSide != 0)
+            {
+                float jumpDir = -wallSide;
+
+                rb.velocity = Vector2.zero;
+
+                rb.AddForce(
+                    new Vector2(jumpDir * wallJumpForceX, wallJumpForceY),
+                    ForceMode2D.Impulse
+                );
+
+                isFacingRight = jumpDir > 0;
+            }
+        }
+    }
+
+    void WallCheck()
+    {
+        wallSide = 0;
+
+        RaycastHit2D hitRight = Physics2D.Raycast(wallCheck.position, Vector2.right, wallCheckDistance, wallLayer);
+        RaycastHit2D hitLeft = Physics2D.Raycast(wallCheck.position, Vector2.left, wallCheckDistance, wallLayer);
+
+        if (hitRight.collider != null)
+        {
+            isTouchingWall = true;
+            wallSide = 1;
+        }
+        else if (hitLeft.collider != null)
+        {
+            isTouchingWall = true;
+            wallSide = -1;
+        }
+        else
+        {
+            isTouchingWall = false;
+        }
+    }
+
+    void HandleFlip()
+    {
+        if (moveInput > 0) isFacingRight = true;
+        else if (moveInput < 0) isFacingRight = false;
+
+        float dir = isFacingRight ? 1 : -1;
+
+        transform.localScale = new Vector3(
+            dir * Mathf.Abs(originalScale.x),
+            originalScale.y,
+            originalScale.z
+        );
     }
 
     void HandleAnimation()
     {
-        // 🔒 ถ้ากำลัง Pray ให้หยุดระบบ animation อื่น
         if (lockAnimation) return;
 
         if (isTouchingWall && !isGrounded && rb.velocity.y <= 0)
@@ -157,7 +240,65 @@ public class PlayerControllerMain : MonoBehaviour
         }
     }
 
-    // ⭐ ฟังก์ชันเล่น Pray (เพิ่มใหม่)
+    void UpdateWallSmoke()
+    {
+        if (wallSmoke == null) return;
+
+        if (isTouchingWall && !isGrounded)
+        {
+            if (!wallSmoke.isPlaying)
+                wallSmoke.Play();
+
+            smokeEmission.rateOverTime = Mathf.Abs(rb.velocity.y) * 15f;
+
+            wallSmoke.transform.localPosition = new Vector3(wallSide * 0.3f, 0, 0);
+        }
+        else
+        {
+            if (wallSmoke.isPlaying)
+                wallSmoke.Stop();
+
+            smokeEmission.rateOverTime = 0;
+        }
+    }
+
+    void HandleLandingSound()
+    {
+        if (!wasGrounded && isGrounded && landingClip != null && rb.velocity.y <= minLandingVelocity)
+        {
+            audioSource.PlayOneShot(landingClip, landingVolume);
+        }
+
+        wasGrounded = isGrounded;
+    }
+
+    void UpdateCloneCooldownUI()
+    {
+        if (cloneCooldownCircle == null) return;
+
+        float elapsed = Time.time - lastCloneTime;
+
+        float value = Mathf.Clamp01(elapsed / playerStats.bodySwapCooldown);
+
+        cloneCooldownCircle.fillAmount = value;
+    }
+
+    public void EnableControl(bool value)
+    {
+        canMove = value;
+
+        if (!value)
+            rb.velocity = Vector2.zero;
+    }
+
+    public void PlayFootstep()
+    {
+        if (!isGrounded) return;
+        if (footstepClip == null) return;
+
+        audioSource.PlayOneShot(footstepClip, footstepVolume);
+    }
+
     public void PlayPray(float duration)
     {
         StartCoroutine(PrayRoutine(duration));
@@ -174,82 +315,5 @@ public class PlayerControllerMain : MonoBehaviour
 
         lockAnimation = false;
         canMove = true;
-    }
-
-    void HandleJumpInput()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            if (isGrounded)
-            {
-                rb.velocity = new Vector2(rb.velocity.x, 0);
-                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-            }
-            else if (isTouchingWall && wallSide != 0)
-            {
-                float jumpDir = -wallSide;
-                rb.velocity = Vector2.zero;
-                rb.AddForce(new Vector2(jumpDir * wallJumpForceX, wallJumpForceY), ForceMode2D.Impulse);
-                isFacingRight = jumpDir > 0;
-            }
-        }
-    }
-
-    void GroundCheck()
-    {
-        RaycastHit2D hit = Physics2D.Raycast(groundRayOrigin.position, Vector2.down, groundRayLength, groundLayer);
-        isGrounded = hit.collider != null;
-    }
-
-    void WallCheck()
-    {
-        wallSide = 0;
-
-        RaycastHit2D hitRight = Physics2D.Raycast(wallCheck.position, Vector2.right, wallCheckDistance, wallLayer);
-        RaycastHit2D hitLeft = Physics2D.Raycast(wallCheck.position, Vector2.left, wallCheckDistance, wallLayer);
-
-        if (hitRight.collider != null) { isTouchingWall = true; wallSide = 1; }
-        else if (hitLeft.collider != null) { isTouchingWall = true; wallSide = -1; }
-        else { isTouchingWall = false; }
-    }
-
-    void HandleFlip()
-    {
-        if (moveInput > 0) isFacingRight = true;
-        else if (moveInput < 0) isFacingRight = false;
-
-        float dir = isFacingRight ? 1 : -1;
-        transform.localScale = new Vector3(dir * Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
-    }
-
-    void UpdateWallSmoke()
-    {
-        if (wallSmoke == null) return;
-
-        if (isTouchingWall && !isGrounded)
-        {
-            if (!wallSmoke.isPlaying) wallSmoke.Play();
-            smokeEmission.rateOverTime = Mathf.Abs(rb.velocity.y) * 15f;
-            wallSmoke.transform.localPosition = new Vector3(wallSide * 0.3f, 0, 0);
-        }
-        else
-        {
-            if (wallSmoke.isPlaying) wallSmoke.Stop();
-            smokeEmission.rateOverTime = 0;
-        }
-    }
-
-    void HandleLandingSound()
-    {
-        if (!wasGrounded && isGrounded && landingClip != null && rb.velocity.y <= minLandingVelocity)
-            audioSource.PlayOneShot(landingClip, landingVolume);
-
-        wasGrounded = isGrounded;
-    }
-
-    public void PlayFootstep()
-    {
-        if (!isGrounded || footstepClip == null) return;
-        audioSource.PlayOneShot(footstepClip, footstepVolume);
     }
 }

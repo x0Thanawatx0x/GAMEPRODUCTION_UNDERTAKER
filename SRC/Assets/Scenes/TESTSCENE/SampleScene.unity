@@ -687,7 +687,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3209f807f379634eb60748e200cd85c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxJumpCount: 1
 --- !u!4 &765070958
 Transform:
   m_ObjectHideFlags: 0
@@ -1664,6 +1663,10 @@ PrefabInstance:
     - target: {fileID: 6614071316212853546, guid: cee27a0893f1e3d4698cf4c528545c9f, type: 3}
       propertyPath: m_Name
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 6614071316212853546, guid: cee27a0893f1e3d4698cf4c528545c9f, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6638942567940855445, guid: cee27a0893f1e3d4698cf4c528545c9f, type: 3}
       propertyPath: pausePanel
