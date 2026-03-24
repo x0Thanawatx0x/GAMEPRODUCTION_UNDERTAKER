@@ -1,78 +1,80 @@
 using UnityEngine;
 
-public class CameraIdleZoomStop : MonoBehaviour
+public class AdvancedCameraFollow : MonoBehaviour
 {
     public Transform player;
 
-    [Header("Follow")]
-    public float followSpeed = 5f;
-    public Vector3 offset = new Vector3(0, 2, -10);
+    [Header("=== Follow ===")]
+    public Vector2 offset = new Vector2(0, 2f);
+    public float smoothTimeX = 0.15f;
+    public float smoothTimeY = 0.2f;
 
-    [Header("Zoom")]
-    public float zoomInSize = 3f;
-    public float zoomOutSize = 9f;
-    public float zoomSpeed = 3f;
+    private float velocityX;
+    private float velocityY;
 
-    [Header("Idle")]
-    public float idleTime = 5f;
+    [Header("=== Look Ahead ===")]
+    public float lookAheadDistance = 2f;
+    public float lookAheadSmooth = 5f;
+    private float currentLookAhead;
 
-    private Camera cam;
-    private float idleTimer = 0f;
+    [Header("=== Dead Zone ===")]
+    public Vector2 deadZone = new Vector2(1f, 1f);
 
-    void Start()
-    {
-        cam = GetComponent<Camera>();
-    }
+    [Header("=== Clamp (Limit Camera) ===")]
+    public bool useBounds = false;
+    public Vector2 minBounds;
+    public Vector2 maxBounds;
+
+    [Header("=== Pixel Perfect (Optional) ===")]
+    public bool pixelSnap = false;
+    public float pixelsPerUnit = 16f;
+
+    private Vector3 currentVelocity;
 
     void LateUpdate()
     {
-        bool isMoving = Mathf.Abs(Input.GetAxisRaw("Horizontal")) > 0;
+        if (player == null) return;
 
-        if (isMoving)
+        float inputX = Input.GetAxisRaw("Horizontal");
+
+        // 🎯 Look Ahead (มองไปด้านที่เดิน)
+        float targetLookAhead = inputX * lookAheadDistance;
+        currentLookAhead = Mathf.Lerp(currentLookAhead, targetLookAhead, Time.deltaTime * lookAheadSmooth);
+
+        // 🎯 Target Position
+        Vector3 targetPos = new Vector3(
+            player.position.x + offset.x + currentLookAhead,
+            player.position.y + offset.y,
+            transform.position.z
+        );
+
+        // 🧠 Dead Zone
+        Vector3 delta = targetPos - transform.position;
+
+        if (Mathf.Abs(delta.x) < deadZone.x) targetPos.x = transform.position.x;
+        if (Mathf.Abs(delta.y) < deadZone.y) targetPos.y = transform.position.y;
+
+        // 🎯 Smooth Follow
+        float newX = Mathf.SmoothDamp(transform.position.x, targetPos.x, ref velocityX, smoothTimeX);
+        float newY = Mathf.SmoothDamp(transform.position.y, targetPos.y, ref velocityY, smoothTimeY);
+
+        Vector3 finalPos = new Vector3(newX, newY, transform.position.z);
+
+        // 🔒 Clamp ขอบแมพ
+        if (useBounds)
         {
-            // รีเซ็ตเวลา idle
-            idleTimer = 0f;
-
-            // กล้องตามผู้เล่น
-            Vector3 targetPos = player.position + offset;
-
-            transform.position = Vector3.Lerp(
-                transform.position,
-                targetPos,
-                Time.deltaTime * followSpeed
-            );
-
-            // Zoom In
-            cam.orthographicSize = Mathf.Lerp(
-                cam.orthographicSize,
-                zoomInSize,
-                Time.deltaTime * zoomSpeed
-            );
+            finalPos.x = Mathf.Clamp(finalPos.x, minBounds.x, maxBounds.x);
+            finalPos.y = Mathf.Clamp(finalPos.y, minBounds.y, maxBounds.y);
         }
-        else
+
+        // 🟪 Pixel Perfect (กันภาพสั่น)
+        if (pixelSnap)
         {
-            // นับเวลา idle
-            idleTimer += Time.deltaTime;
-
-            // ถ้ายืนนิ่งครบ 5 วิ
-            if (idleTimer >= idleTime)
-            {
-                // กล้องกลับไปตำแหน่งกลาง
-                Vector3 idlePos = new Vector3(0, 0, -10);
-
-                transform.position = Vector3.Lerp(
-                    transform.position,
-                    idlePos,
-                    Time.deltaTime * followSpeed
-                );
-
-                // Zoom Out
-                cam.orthographicSize = Mathf.Lerp(
-                    cam.orthographicSize,
-                    zoomOutSize,
-                    Time.deltaTime * zoomSpeed
-                );
-            }
+            float unit = 1f / pixelsPerUnit;
+            finalPos.x = Mathf.Round(finalPos.x / unit) * unit;
+            finalPos.y = Mathf.Round(finalPos.y / unit) * unit;
         }
+
+        transform.position = finalPos;
     }
 }

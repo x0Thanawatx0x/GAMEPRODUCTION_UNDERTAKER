@@ -5,41 +5,45 @@ public class GhostOrbRespawn : MonoBehaviour
 {
     static List<GhostOrbRespawn> collectedOrbs = new List<GhostOrbRespawn>();
 
-    SpriteRenderer sr;
-    Collider2D col;
+    public GameObject pressEUI; // 🔥 ลาก UI มาใส่ใน Inspector
 
-    void Awake()
+    bool playerInRange = false;
+
+    void Start()
     {
-        sr = GetComponent<SpriteRenderer>();
-        col = GetComponent<Collider2D>();
+        if (pressEUI != null)
+            pressEUI.SetActive(false); // เริ่มต้นซ่อนไว้
+    }
+
+    void Update()
+    {
+        if (playerInRange && Input.GetKeyDown(KeyCode.E))
+        {
+            Collect();
+        }
     }
 
     public void Collect()
     {
         Debug.Log("Orb collected: " + gameObject.name);
 
-        collectedOrbs.Add(this);
+        if (!collectedOrbs.Contains(this))
+            collectedOrbs.Add(this);
 
-        if (sr != null)
-            sr.enabled = false;
+        if (pressEUI != null)
+            pressEUI.SetActive(false);
 
-        if (col != null)
-            col.enabled = false;
+        gameObject.SetActive(false);
     }
 
     public void Respawn()
     {
         Debug.Log("Respawning orb: " + gameObject.name);
 
-        if (sr != null)
-        {
-            Color c = sr.color;
-            sr.color = new Color(c.r, c.g, c.b, 1f);
-            sr.enabled = true;
-        }
+        gameObject.SetActive(true);
 
-        if (col != null)
-            col.enabled = true;
+        if (pressEUI != null)
+            pressEUI.SetActive(false);
     }
 
     public static void RespawnAll()
@@ -53,5 +57,27 @@ public class GhostOrbRespawn : MonoBehaviour
         }
 
         collectedOrbs.Clear();
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInRange = true;
+
+            if (pressEUI != null)
+                pressEUI.SetActive(true);
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            playerInRange = false;
+
+            if (pressEUI != null)
+                pressEUI.SetActive(false);
+        }
     }
 }
