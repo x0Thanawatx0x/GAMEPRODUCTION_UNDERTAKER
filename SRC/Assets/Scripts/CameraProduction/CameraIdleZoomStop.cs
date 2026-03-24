@@ -25,19 +25,13 @@ public class AdvancedCameraFollow : MonoBehaviour
     public Vector2 minBounds;
     public Vector2 maxBounds;
 
-    [Header("=== Pixel Perfect (Optional) ===")]
-    public bool pixelSnap = false;
-    public float pixelsPerUnit = 16f;
-
-    private Vector3 currentVelocity;
-
     void LateUpdate()
     {
         if (player == null) return;
 
         float inputX = Input.GetAxisRaw("Horizontal");
 
-        // 🎯 Look Ahead (มองไปด้านที่เดิน)
+        // 🎯 Look Ahead
         float targetLookAhead = inputX * lookAheadDistance;
         currentLookAhead = Mathf.Lerp(currentLookAhead, targetLookAhead, Time.deltaTime * lookAheadSmooth);
 
@@ -60,19 +54,11 @@ public class AdvancedCameraFollow : MonoBehaviour
 
         Vector3 finalPos = new Vector3(newX, newY, transform.position.z);
 
-        // 🔒 Clamp ขอบแมพ
+        // 🔒 Clamp
         if (useBounds)
         {
             finalPos.x = Mathf.Clamp(finalPos.x, minBounds.x, maxBounds.x);
             finalPos.y = Mathf.Clamp(finalPos.y, minBounds.y, maxBounds.y);
-        }
-
-        // 🟪 Pixel Perfect (กันภาพสั่น)
-        if (pixelSnap)
-        {
-            float unit = 1f / pixelsPerUnit;
-            finalPos.x = Mathf.Round(finalPos.x / unit) * unit;
-            finalPos.y = Mathf.Round(finalPos.y / unit) * unit;
         }
 
         transform.position = finalPos;

@@ -93,6 +93,32 @@ TextureImporter:
     ignorePlatformSupport: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
@@ -520,8 +546,8 @@ TextureImporter:
       name: 19_20
       rect:
         serializedVersion: 2
-        x: 22
-        y: 479
+        x: 11
+        y: 473
         width: 514
         height: 258
       alignment: 0
@@ -966,7 +992,7 @@ TextureImporter:
         width: 101
         height: 21
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -987,7 +1013,7 @@ TextureImporter:
         width: 275
         height: 37
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1008,7 +1034,7 @@ TextureImporter:
         width: 331
         height: 21
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -1016,6 +1042,48 @@ TextureImporter:
       bones: []
       spriteID: e00f0b91e6b3df64683762310fc244d9
       internalID: -547589482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 19_44
+      rect:
+        serializedVersion: 2
+        x: 618
+        y: 491
+        width: 191
+        height: 25
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 191, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b2dc15c6d6ee1242a6287299f566316
+      internalID: 916690512
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: 19_45
+      rect:
+        serializedVersion: 2
+        x: 1713
+        y: 258
+        width: 129
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 94fd6566f5c9fcf45ade59d3e57be30c
+      internalID: 1007535813
       vertices: []
       indices: 
       edges: []
@@ -1070,6 +1138,8 @@ TextureImporter:
       19_41: 1345631840
       19_42: -828579577
       19_43: -547589482
+      19_44: 916690512
+      19_45: 1007535813
       19_5: 1771455064
       19_6: -1783972607
       19_7: 563189057

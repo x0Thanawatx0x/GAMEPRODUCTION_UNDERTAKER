@@ -26,13 +26,22 @@ public class MonsterAI : MonoBehaviour
     [Header("Timing")]
     public float chargeTime = 1f;
 
-    private float timer;
+    [Header("Audio")] // ⭐ เพิ่มส่วนของเสียง
+    public AudioSource audioSource;
+    public AudioClip idleSound;
+    public AudioClip chargeSound;
+    public AudioClip attackSound;
+    public AudioClip dieSound;
 
+    private float timer;
     private Animator anim;
 
     void Start()
     {
         anim = GetComponent<Animator>();
+        // ถ้าไม่ได้ลาก AudioSource มาใส่เอง ให้มันพยายามหาในเครื่อง
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+
         SetState(State.Idle);
     }
 
@@ -80,9 +89,7 @@ public class MonsterAI : MonoBehaviour
     void Shoot()
     {
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-
         Vector2 dir = (player.position - firePoint.position).normalized;
-
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
 
         if (rb != null)
@@ -98,10 +105,15 @@ public class MonsterAI : MonoBehaviour
         SetState(State.Idle);
     }
 
+    // ⭐ ปรับปรุงฟังก์ชัน SetState ให้เล่นเสียงตาม State
     void SetState(State newState)
     {
         currentState = newState;
 
+        // 1. จัดการเรื่องเสียง
+        PlayStateSound(newState);
+
+        // 2. จัดการเรื่อง Animation
         if (anim == null) return;
 
         switch (newState)
@@ -124,7 +136,33 @@ public class MonsterAI : MonoBehaviour
         }
     }
 
-    // ⭐ Debug Detect Range
+    // ⭐ ฟังก์ชันสำหรับเลือกเล่นเสียง
+    void PlayStateSound(State state)
+    {
+        if (audioSource == null) return;
+
+        // หยุดเสียงเดิมก่อน (ถ้าต้องการให้เสียงใหม่ขัดจังหวะเสียงเก่าได้เลย)
+        audioSource.Stop();
+
+        AudioClip clipToPlay = null;
+
+        switch (state)
+        {
+            case State.Idle: clipToPlay = idleSound; break;
+            case State.Charge: clipToPlay = chargeSound; break;
+            case State.Attack: clipToPlay = attackSound; break;
+            case State.Die: clipToPlay = dieSound; break;
+        }
+
+        if (clipToPlay != null)
+        {
+            audioSource.clip = clipToPlay;
+            // ถ้าเป็น Idle อาจจะให้ Loop (ติ๊กถูกใน AudioSource Component จะง่ายกว่า)
+            audioSource.loop = (state == State.Idle);
+            audioSource.Play();
+        }
+    }
+
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
