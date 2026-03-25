@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: PlayerStats
   m_EditorClassIdentifier: 
   runSpeed: 60
-  jumpForce: 70
+  jumpForce: 200
   canDoubleJump: 0
   bodySwapCooldown: 5

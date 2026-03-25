@@ -111,25 +111,43 @@ public class PlayerControllerMain : MonoBehaviour
     {
         if (!canMove) return;
 
+        float targetSpeed = moveInput * playerStats.runSpeed;
+
         if (isTouchingWall && !isGrounded && rb.velocity.y <= 0)
         {
             rb.velocity = new Vector2(0, -wallSlideSpeed);
+            return;
+        }
+
+        if (isGrounded)
+        {
+            // 🔥 เอาทิศ slope
+            Vector2 slopeDir = Vector2.Perpendicular(groundNormal).normalized;
+
+            // 🔥 บังคับให้ทิศตรงกับ input
+            if (moveInput > 0)
+            {
+                if (slopeDir.x < 0) slopeDir = -slopeDir;
+            }
+            else if (moveInput < 0)
+            {
+                if (slopeDir.x > 0) slopeDir = -slopeDir;
+            }
+
+            Vector2 targetVelocity = slopeDir * Mathf.Abs(moveInput) * playerStats.runSpeed;
+
+            rb.velocity = Vector2.Lerp(rb.velocity, targetVelocity, 10f * Time.fixedDeltaTime);
+
+            // กดติดพื้น
+            rb.velocity += -groundNormal * 5f;
         }
         else
         {
-            if (isGrounded)
-            {
-                Vector2 slopeDir = new Vector2(groundNormal.y, -groundNormal.x);
+            // 🔥 กลางอากาศ (air control)
+            float smooth = 5f;
+            float newX = Mathf.Lerp(rb.velocity.x, targetSpeed, smooth * Time.fixedDeltaTime);
 
-                rb.velocity = new Vector2(
-                    slopeDir.x * moveInput * playerStats.runSpeed,
-                    rb.velocity.y
-                );
-            }
-            else
-            {
-                rb.velocity = new Vector2(moveInput * playerStats.runSpeed, rb.velocity.y);
-            }
+            rb.velocity = new Vector2(newX, rb.velocity.y);
         }
     }
 
