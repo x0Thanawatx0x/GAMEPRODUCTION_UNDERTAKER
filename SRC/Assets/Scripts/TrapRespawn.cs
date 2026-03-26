@@ -1,55 +1,64 @@
-﻿    using UnityEngine;
+﻿using UnityEngine;
 
-    public class TrapRespawn : MonoBehaviour
+public class TrapRespawn : MonoBehaviour
+{
+    public string playerTag = "Player";
+
+    [Header("Original Spawn")]
+    public Transform originalSpawnPoint;
+
+    void OnTriggerEnter2D(Collider2D other)
     {
-        public string playerTag = "Player";
+        Debug.Log("Something entered trap: " + other.name);
 
-        [Header("Original Spawn")]
-        public Transform originalSpawnPoint;
+        if (!other.CompareTag(playerTag)) return;
 
-        void OnTriggerEnter2D(Collider2D other)
+        Debug.Log("Player hit trap!");
+
+        PlayerLifeManager lifeManager = other.GetComponent<PlayerLifeManager>();
+
+        // 🔥 หา CloneSwitcher
+        CloneSwitcher cloneSwitcher = other.GetComponent<CloneSwitcher>();
+
+        if (cloneSwitcher != null)
         {
-            Debug.Log("Something entered trap: " + other.name);
+            cloneSwitcher.ForceCancelClone(); // 💥 ยกเลิก clone ทันที
+        }
 
-            if (!other.CompareTag(playerTag)) return;
+        if (lifeManager != null)
+        {
+            Debug.Log("Counting trap and resetting ghost");
+            lifeManager.CountTrap();
+            lifeManager.ResetGhost();
+        }   
 
-            Debug.Log("Player hit trap!");
+        // ⭐ Respawn Ghost Orbs
+        Debug.Log("Respawning all Ghost Orbs...");
+        GhostOrbRespawn.RespawnAll();
 
-            PlayerLifeManager lifeManager = other.GetComponent<PlayerLifeManager>();
+        Vector3 respawnPos;
 
-            if (lifeManager != null)
-            {
-                Debug.Log("Counting trap and resetting ghost");
-                lifeManager.CountTrap();
-                lifeManager.ResetGhost();
-            }
+        if (PlayerPrefs.HasKey("PlayerX"))
+        {
+            float x = PlayerPrefs.GetFloat("PlayerX");
+            float y = PlayerPrefs.GetFloat("PlayerY");
+            float z = PlayerPrefs.GetFloat("PlayerZ");
 
-            // ⭐ Respawn Ghost Orbs
-            Debug.Log("Respawning all Ghost Orbs...");
-            GhostOrbRespawn.RespawnAll();
+            respawnPos = new Vector3(x, y, z);
+            Debug.Log("Respawn from PlayerPrefs: " + respawnPos);
+        }
+        else
+        {
+            respawnPos = originalSpawnPoint.position;
+            Debug.Log("Respawn from original spawn point: " + respawnPos);
+        }
 
-            Vector3 respawnPos;
+        // 🔥 ย้ายตำแหน่งหลัง cancel clone
+        other.transform.position = respawnPos;
 
-            if (PlayerPrefs.HasKey("PlayerX"))
-            {
-                float x = PlayerPrefs.GetFloat("PlayerX");
-                float y = PlayerPrefs.GetFloat("PlayerY");
-                float z = PlayerPrefs.GetFloat("PlayerZ");
-
-                respawnPos = new Vector3(x, y, z);
-                Debug.Log("Respawn from PlayerPrefs: " + respawnPos);
-            }
-            else
-            {
-                respawnPos = originalSpawnPoint.position;
-                Debug.Log("Respawn from original spawn point: " + respawnPos);
-            }
-
-            other.transform.position = respawnPos;
-
-            if (lifeManager != null)
-            {
-                lifeManager.ResetTrapCountLock();
-            }
+        if (lifeManager != null)
+        {
+            lifeManager.ResetTrapCountLock();
         }
     }
+}

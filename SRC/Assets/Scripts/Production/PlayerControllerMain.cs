@@ -121,29 +121,21 @@ public class PlayerControllerMain : MonoBehaviour
 
         if (isGrounded)
         {
-            // 🔥 เอาทิศ slope
-            Vector2 slopeDir = Vector2.Perpendicular(groundNormal).normalized;
+            // ✅ Slope movement
+            Vector2 slopeDir = new Vector2(groundNormal.y, -groundNormal.x).normalized;
+            Vector2 targetVelocity = slopeDir * moveInput * playerStats.runSpeed;
 
-            // 🔥 บังคับให้ทิศตรงกับ input
-            if (moveInput > 0)
+            // 🔥 FIX สำคัญ: ไม่ทับแรงกระโดด
+            rb.velocity = new Vector2(targetVelocity.x, rb.velocity.y);
+
+            // 🔥 Ground Stick (เฉพาะตอนกำลังตก)
+            if (rb.velocity.y < -0.1f)
             {
-                if (slopeDir.x < 0) slopeDir = -slopeDir;
+                rb.velocity += -groundNormal * 10f;
             }
-            else if (moveInput < 0)
-            {
-                if (slopeDir.x > 0) slopeDir = -slopeDir;
-            }
-
-            Vector2 targetVelocity = slopeDir * Mathf.Abs(moveInput) * playerStats.runSpeed;
-
-            rb.velocity = Vector2.Lerp(rb.velocity, targetVelocity, 10f * Time.fixedDeltaTime);
-
-            // กดติดพื้น
-            rb.velocity += -groundNormal * 5f;
         }
         else
         {
-            // 🔥 กลางอากาศ (air control)
             float smooth = 5f;
             float newX = Mathf.Lerp(rb.velocity.x, targetSpeed, smooth * Time.fixedDeltaTime);
 
@@ -153,12 +145,14 @@ public class PlayerControllerMain : MonoBehaviour
 
     void GroundCheck()
     {
-        RaycastHit2D hit = Physics2D.Raycast(
-            groundRayOrigin.position,
-            Vector2.down,
-            groundRayLength,
-            groundLayer
-        );
+        float extra = 0.2f;
+
+        RaycastHit2D hitCenter = Physics2D.Raycast(groundRayOrigin.position, Vector2.down, groundRayLength + extra, groundLayer);
+        RaycastHit2D hitLeft = Physics2D.Raycast(groundRayOrigin.position + Vector3.left * 0.2f, Vector2.down, groundRayLength + extra, groundLayer);
+        RaycastHit2D hitRight = Physics2D.Raycast(groundRayOrigin.position + Vector3.right * 0.2f, Vector2.down, groundRayLength + extra, groundLayer);
+
+        RaycastHit2D hit = hitCenter.collider ? hitCenter :
+                           (hitLeft.collider ? hitLeft : hitRight);
 
         if (hit.collider != null)
         {
@@ -170,8 +164,6 @@ public class PlayerControllerMain : MonoBehaviour
             isGrounded = false;
             groundNormal = Vector2.up;
         }
-
-        Debug.DrawRay(groundRayOrigin.position, Vector2.down * groundRayLength, Color.red);
     }
 
     void HandleJumpInput()
@@ -180,7 +172,9 @@ public class PlayerControllerMain : MonoBehaviour
         {
             if (isGrounded)
             {
-                rb.velocity = new Vector2(rb.velocity.x, 0);
+                // 🔥 กันโดน ground stick ทับ
+                rb.velocity = new Vector2(rb.velocity.x, 2f);
+
                 rb.AddForce(Vector2.up * playerStats.jumpForce, ForceMode2D.Impulse);
             }
             else if (isTouchingWall && wallSide != 0)
@@ -295,9 +289,7 @@ public class PlayerControllerMain : MonoBehaviour
         if (cloneCooldownCircle == null) return;
 
         float elapsed = Time.time - lastCloneTime;
-
         float value = Mathf.Clamp01(elapsed / playerStats.bodySwapCooldown);
-
         cloneCooldownCircle.fillAmount = value;
     }
 

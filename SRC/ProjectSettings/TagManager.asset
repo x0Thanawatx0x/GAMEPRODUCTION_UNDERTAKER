@@ -9,6 +9,7 @@ TagManager:
   - GhostOrb
   - Platform
   - Trap
+  - WarpPoint
   layers:
   - Default
   - TransparentFX

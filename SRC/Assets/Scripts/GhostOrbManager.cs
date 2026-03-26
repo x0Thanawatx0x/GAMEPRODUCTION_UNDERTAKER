@@ -3,91 +3,28 @@ using UnityEngine;
 
 public class GhostOrbManager : MonoBehaviour
 {
-    [Header("Pickup Settings")]
-    [SerializeField] float pickupRadius = 0.8f;
-    [SerializeField] KeyCode pickupKey = KeyCode.E;
-    [SerializeField] float pickupCooldown = 0.2f;
-
     [Header("Fade Settings")]
     [SerializeField] float fadeDuration = 0.5f;
 
-    [Header("UI")]
-    public GameObject pickupUI;
-
-    bool isPicking;
     PlayerLifeManager lifeManager;
 
     void Start()
     {
         lifeManager = FindObjectOfType<PlayerLifeManager>();
-
-        if (pickupUI != null)
-            pickupUI.SetActive(false);
     }
 
-    void Update()
+    void OnTriggerEnter2D(Collider2D other)
     {
-        CheckNearbyOrb();
+        // ตรวจสอบ parent ใด ๆ ว่าเป็น GhostOrb
+        GhostOrbRespawn orbRespawn = other.GetComponentInParent<GhostOrbRespawn>();
+        if (orbRespawn == null) return; // ไม่ใช่ orb
 
-        if (Input.GetKeyDown(pickupKey) && !isPicking)
-        {
-            TryPickupOrb();
-        }
+        // เพิ่ม Ghost แค่ครั้งเดียว
+        if (lifeManager != null)
+            lifeManager.AddGhost(1);
 
-        if (pickupUI != null)
-        {
-            float direction = Mathf.Sign(transform.localScale.x);
-
-            pickupUI.transform.localScale = new Vector3(
-                6f * direction,
-                6f,
-                1f
-            );
-        }
-    }
-
-    void CheckNearbyOrb()
-    {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, pickupRadius);
-
-        bool foundOrb = false;
-
-        foreach (Collider2D hit in hits)
-        {
-            if (hit.CompareTag("GhostOrb"))
-            {
-                foundOrb = true;
-                break;
-            }
-        }
-
-        if (pickupUI != null)
-            pickupUI.SetActive(foundOrb);
-    }
-
-    void TryPickupOrb()
-    {
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, pickupRadius);
-
-        foreach (Collider2D hit in hits)
-        {
-            if (!hit.CompareTag("GhostOrb")) continue;
-
-            StartCoroutine(FadeAndCollect(hit.gameObject));
-
-            if (lifeManager != null)
-                lifeManager.AddGhost(1);
-
-            StartCoroutine(PickupCooldown());
-            break;
-        }
-    }
-
-    IEnumerator PickupCooldown()
-    {
-        isPicking = true;
-        yield return new WaitForSeconds(pickupCooldown);
-        isPicking = false;
+        StartCoroutine(FadeAndCollect(orbRespawn.gameObject));
+        Debug.Log("Orb collected: " + orbRespawn.gameObject.name);
     }
 
     IEnumerator FadeAndCollect(GameObject orb)
@@ -105,7 +42,6 @@ public class GhostOrbManager : MonoBehaviour
         {
             time += Time.deltaTime;
             float alpha = Mathf.Lerp(1f, 0f, time / fadeDuration);
-
             sr.color = new Color(startColor.r, startColor.g, startColor.b, alpha);
             yield return null;
         }
@@ -114,11 +50,5 @@ public class GhostOrbManager : MonoBehaviour
             respawn.Collect();
         else
             orb.SetActive(false);
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, pickupRadius);
     }
 }

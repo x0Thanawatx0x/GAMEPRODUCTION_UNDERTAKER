@@ -8,6 +8,10 @@ public class CloneSwitcher : MonoBehaviour
     [Header("=== Switch Key ===")]
     public KeyCode switchKey = KeyCode.J;
 
+    [Header("=== Clone Range UI ===")]
+    public GameObject rangeUI;
+    public float cloneRange = 5f;
+
     private GameObject currentClone;
 
     private PlayerControllerMain playerController;
@@ -16,6 +20,13 @@ public class CloneSwitcher : MonoBehaviour
     void Start()
     {
         playerController = GetComponent<PlayerControllerMain>();
+
+        if (rangeUI != null)
+        {
+            rangeUI.SetActive(false);
+            rangeUI.transform.SetParent(transform);
+            rangeUI.transform.localPosition = Vector3.zero;
+        }
     }
 
     void Update()
@@ -23,16 +34,21 @@ public class CloneSwitcher : MonoBehaviour
         if (Input.GetKeyDown(switchKey))
         {
             TrySpawnClone();
+            ShowRangeUI(true);
         }
 
         if (Input.GetKey(switchKey) && currentClone != null)
         {
             SwitchToClone();
+            UpdateRangeUI();
         }
 
-        if (Input.GetKeyUp(switchKey) && currentClone != null)
+        if (Input.GetKeyUp(switchKey))
         {
-            ReturnToPlayer();
+            ShowRangeUI(false);
+
+            if (currentClone != null)
+                ReturnToPlayer();
         }
     }
 
@@ -52,7 +68,6 @@ public class CloneSwitcher : MonoBehaviour
             transform.rotation
         );
 
-        // 🔥 ทำให้ Clone ทะลุ Player และ SpriteWall
         IgnoreCloneCollision(currentClone);
     }
 
@@ -84,13 +99,59 @@ public class CloneSwitcher : MonoBehaviour
         isControllingClone = false;
     }
 
+    // 💥🔥 ฟังก์ชันใหม่ (สำคัญมาก)
+    public void ForceCancelClone()
+    {
+        if (currentClone == null) return;
+
+        playerController.EnableControl(true);
+
+        Destroy(currentClone);
+
+        playerController.StartCloneCooldown();
+
+        isControllingClone = false;
+
+        Debug.Log("<color=yellow>Clone ถูกยกเลิกโดย Trap!</color>");
+    }
+
+    // =========================
+    // RANGE UI
+    // =========================
+
+    void ShowRangeUI(bool show)
+    {
+        if (rangeUI == null) return;
+
+        rangeUI.SetActive(show);
+
+        if (show)
+        {
+            rangeUI.transform.SetParent(transform);
+            rangeUI.transform.localPosition = Vector3.zero;
+            UpdateRangeUI();
+        }
+    }
+
+    void UpdateRangeUI()
+    {
+        if (rangeUI == null) return;
+
+        float size = cloneRange * 2f;
+
+        rangeUI.transform.localScale = new Vector3(size, size, 1f);
+    }
+
+    // =========================
+    // IGNORE COLLISION
+    // =========================
+
     void IgnoreCloneCollision(GameObject clone)
     {
         Collider2D cloneCol = clone.GetComponent<Collider2D>();
 
         if (cloneCol == null) return;
 
-        // หา Player ทั้งหมด
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
 
         foreach (GameObject p in players)
@@ -101,7 +162,6 @@ public class CloneSwitcher : MonoBehaviour
                 Physics2D.IgnoreCollision(cloneCol, col, true);
         }
 
-        // หา SpriteWall ทั้งหมด
         GameObject[] walls = GameObject.FindGameObjectsWithTag("SpriteWall");
 
         foreach (GameObject w in walls)

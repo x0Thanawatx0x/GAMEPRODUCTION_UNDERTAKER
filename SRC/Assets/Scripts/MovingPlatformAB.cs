@@ -1,102 +1,53 @@
 ﻿using UnityEngine;
 
-[RequireComponent(typeof(BoxCollider2D))]
-[RequireComponent(typeof(Rigidbody2D))]
-public class MovingPlatformAB : MonoBehaviour
+public class MovingPlatform : MonoBehaviour
 {
-    [Header("=== Reference Points ===")]
+    [Header("Move Settings")]
     public Transform pointA;
     public Transform pointB;
+    public float speed = 2f;
 
-    [Header("=== Movement Settings ===")]
-    public float moveSpeed = 2f;
-    public bool startFromA = true;
-
-    private Transform targetPoint;
-    private Vector3 lastPosition;
-    private Transform passenger;
-
-    private SpriteRenderer sr;
-    private Collider2D col;
-
-    void Awake()
-    {
-        sr = GetComponent<SpriteRenderer>();
-        col = GetComponent<Collider2D>();
-    }
+    private Vector3 target;
 
     void Start()
     {
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        rb.gravityScale = 0f;
-
-        targetPoint = startFromA ? pointB : pointA;
-        transform.position = startFromA ? pointA.position : pointB.position;
-
-        lastPosition = transform.position;
+        target = pointB.position;
     }
 
-    void FixedUpdate()
+    void Update()
     {
-        MovePlatform();
-        MovePassenger();
-        lastPosition = transform.position;
-    }
-
-    void MovePlatform()
-    {
-        if (pointA == null || pointB == null) return;
-
-        transform.position = Vector2.MoveTowards(
+        transform.position = Vector3.MoveTowards(
             transform.position,
-            targetPoint.position,
-            moveSpeed * Time.fixedDeltaTime
+            target,
+            speed * Time.deltaTime
         );
 
-        if (Vector2.Distance(transform.position, targetPoint.position) < 0.01f)
+        if (Vector3.Distance(transform.position, target) < 0.05f)
         {
-            targetPoint = (targetPoint == pointA) ? pointB : pointA;
+            target = (target == pointA.position) ? pointB.position : pointA.position;
         }
     }
 
-    void MovePassenger()
-    {
-        if (passenger == null) return;
-
-        Vector3 delta = transform.position - lastPosition;
-        passenger.position += delta;
-    }
-
+    // 👇 ทำให้ Player ติด Platform
     void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
-            passenger = collision.transform;
+        {
+            foreach (ContactPoint2D contact in collision.contacts)
+            {
+                if (contact.normal.y > 0.7f) // ยืนบนจริง
+                {
+                    collision.transform.SetParent(transform);
+                }
+            }
+        }
     }
 
     void OnCollisionExit2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            if (passenger == collision.transform)
-                passenger = null;
+            collision.transform.SetParent(null);
         }
-    }
-
-    // ⭐ ซ่อน / แสดง Platform ทั้งภาพ + Collider
-    public void SetPlatformActive(bool active)
-    {
-        if (sr != null) sr.enabled = active;
-        if (col != null) col.enabled = active;
-    }
-
-    void OnDrawGizmos()
-    {
-        if (pointA == null || pointB == null) return;
-
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawLine(pointA.position, pointB.position);
-        Gizmos.DrawSphere(pointA.position, 0.1f);
-        Gizmos.DrawSphere(pointB.position, 0.1f);
     }
 }

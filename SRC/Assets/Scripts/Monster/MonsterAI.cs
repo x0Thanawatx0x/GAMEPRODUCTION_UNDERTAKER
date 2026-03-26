@@ -1,15 +1,9 @@
 using UnityEngine;
+using System.Collections;
 
 public class MonsterAI : MonoBehaviour
 {
-    public enum State
-    {
-        Idle,
-        Charge,
-        Attack,
-        Die
-    }
-
+    public enum State { Idle, Charge, Attack, Die }
     [SerializeField] private State currentState = State.Idle;
 
     [Header("Target")]
@@ -22,52 +16,104 @@ public class MonsterAI : MonoBehaviour
 
     [Header("Detection")]
     public float detectRange = 6f;
+    public float stopAttackRange = 2f;
 
     [Header("Timing")]
     public float chargeTime = 1f;
+    public float holdETimeToDie = 3f;
 
-    [Header("Audio")] // ⭐ เพิ่มส่วนของเสียง
+    [Header("Ghost Orb Spawn")]
+    public GameObject ghostOrbPrefab;
+    public Vector2 orbSpawnOffset = new Vector2(0f, 1f);
+
+    [Header("Audio")]
     public AudioSource audioSource;
     public AudioClip idleSound;
     public AudioClip chargeSound;
     public AudioClip attackSound;
     public AudioClip dieSound;
 
+    [Header("E Prompt")]
+    public GameObject ePrompt;
+
     private float timer;
     private Animator anim;
+    private bool playerInRange = false;
+    private float holdETimer = 0f;
+    private SpriteRenderer spriteRenderer;
+    public float fadeSpeed = 1f;
 
     void Start()
     {
         anim = GetComponent<Animator>();
-        // ถ้าไม่ได้ลาก AudioSource มาใส่เอง ให้มันพยายามหาในเครื่อง
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
-
+        spriteRenderer = GetComponent<SpriteRenderer>();
         SetState(State.Idle);
     }
 
     void Update()
     {
+        // แสดง E Prompt
+        if (ePrompt != null)
+            ePrompt.SetActive(playerInRange);
+
+        // --- กด/ปล่อย E ---
+        if (playerInRange && currentState != State.Die)
+        {
+            if (Input.GetKey(KeyCode.E))
+            {
+                holdETimer += Time.deltaTime;
+
+                // ถือตัว E ครบ Monster ตาย
+                if (holdETimer >= holdETimeToDie)
+                {
+                    StartCoroutine(PlayDieAnimationThenFade());
+                }
+            }
+            else
+            {
+                holdETimer = 0f;
+            }
+        }
+
+        // --- ระบบ AI เดิม ---
+        if (player == null || currentState == State.Die) return;
+
+        float dist = Vector2.Distance(transform.position, player.position);
+
+        if (dist < stopAttackRange && currentState != State.Die)
+        {
+            if (currentState != State.Idle) SetState(State.Idle);
+            return;
+        }
+
         switch (currentState)
         {
             case State.Idle:
-                CheckPlayer();
+                CheckPlayer(dist);
                 break;
-
             case State.Charge:
                 Charge();
                 break;
-
             case State.Attack:
                 break;
         }
     }
 
-    void CheckPlayer()
+    void OnTriggerEnter2D(Collider2D other)
     {
-        if (player == null) return;
+        if (other.CompareTag("Player"))
+            playerInRange = true;
+    }
 
-        float dist = Vector2.Distance(transform.position, player.position);
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+            playerInRange = false;
+    }
 
+    void CheckPlayer(float dist)
+    {
         if (dist < detectRange)
         {
             timer = chargeTime;
@@ -78,7 +124,6 @@ public class MonsterAI : MonoBehaviour
     void Charge()
     {
         timer -= Time.deltaTime;
-
         if (timer <= 0)
         {
             SetState(State.Attack);
@@ -88,62 +133,42 @@ public class MonsterAI : MonoBehaviour
 
     void Shoot()
     {
+        if (player == null) return;
+
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         Vector2 dir = (player.position - firePoint.position).normalized;
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-
-        if (rb != null)
-        {
-            rb.velocity = dir * bulletSpeed;
-        }
+        if (rb != null) rb.velocity = dir * bulletSpeed;
 
         Invoke(nameof(BackToIdle), 0.5f);
     }
 
     void BackToIdle()
     {
-        SetState(State.Idle);
+        if (currentState != State.Die)
+            SetState(State.Idle);
     }
 
-    // ⭐ ปรับปรุงฟังก์ชัน SetState ให้เล่นเสียงตาม State
     void SetState(State newState)
     {
         currentState = newState;
-
-        // 1. จัดการเรื่องเสียง
         PlayStateSound(newState);
 
-        // 2. จัดการเรื่อง Animation
         if (anim == null) return;
 
         switch (newState)
         {
-            case State.Idle:
-                anim.Play("MIdle");
-                break;
-
-            case State.Charge:
-                anim.Play("MCharge");
-                break;
-
-            case State.Attack:
-                anim.Play("MAttack");
-                break;
-
-            case State.Die:
-                anim.Play("DieM");
-                break;
+            case State.Idle: anim.Play("MIdle"); break;
+            case State.Charge: anim.Play("MCharge"); break;
+            case State.Attack: anim.Play("MAttack"); break;
+            case State.Die: anim.Play("DieM"); break;
         }
     }
 
-    // ⭐ ฟังก์ชันสำหรับเลือกเล่นเสียง
     void PlayStateSound(State state)
     {
         if (audioSource == null) return;
-
-        // หยุดเสียงเดิมก่อน (ถ้าต้องการให้เสียงใหม่ขัดจังหวะเสียงเก่าได้เลย)
         audioSource.Stop();
-
         AudioClip clipToPlay = null;
 
         switch (state)
@@ -157,21 +182,40 @@ public class MonsterAI : MonoBehaviour
         if (clipToPlay != null)
         {
             audioSource.clip = clipToPlay;
-            // ถ้าเป็น Idle อาจจะให้ Loop (ติ๊กถูกใน AudioSource Component จะง่ายกว่า)
             audioSource.loop = (state == State.Idle);
             audioSource.Play();
         }
     }
 
-    void OnDrawGizmosSelected()
+    IEnumerator PlayDieAnimationThenFade()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectRange);
+        SetState(State.Die);
 
-        if (player != null)
+        // Fade Monster จางหาย
+        float alpha = spriteRenderer.color.a;
+        while (alpha > 0f)
         {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(transform.position, player.position);
+            alpha -= fadeSpeed * Time.deltaTime;
+            spriteRenderer.color = new Color(1f, 1f, 1f, alpha);
+            yield return null;
+        }
+
+        SpawnGhostOrbs();
+        Destroy(gameObject);
+    }
+
+    void SpawnGhostOrbs()
+    {
+        if (ghostOrbPrefab == null) return;
+
+        if (Random.value < 0.5f)
+        {
+            Vector2 offset = new Vector2(
+                Random.Range(-orbSpawnOffset.x, orbSpawnOffset.x),
+                Random.Range(0, orbSpawnOffset.y)
+            );
+
+            Instantiate(ghostOrbPrefab, (Vector2)transform.position + offset, Quaternion.identity);
         }
     }
 }
