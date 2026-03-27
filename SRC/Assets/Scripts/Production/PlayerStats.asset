@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a33e1c96186b90b47b4b66836e5dc70b, type: 3}
   m_Name: PlayerStats
   m_EditorClassIdentifier: 
-  runSpeed: 40
+  runSpeed: 41
   jumpForce: 40
-  canDoubleJump: 1
-  bodySwapCooldown: 5
+  canDoubleJump: 0
+  bodySwapCooldown: 4
+  cloneRange: 60
+  attackChargeTime: 3

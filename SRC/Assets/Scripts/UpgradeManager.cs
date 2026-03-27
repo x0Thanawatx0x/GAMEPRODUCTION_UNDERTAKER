@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class UpgradeManager : MonoBehaviour
 {
@@ -22,15 +23,30 @@ public class UpgradeManager : MonoBehaviour
     public float speedUpgradeAmount = 1f;
     public float jumpUpgradeAmount = 2f;
     public float cooldownReduceAmount = 1f;
+    public float cloneRangeUpgradeAmount = 1f;
+    public float attackSpeedReduceAmount = 0.5f;
+
+    public Action OnUpgradeComplete;
 
     enum UpgradeType
     {
         Speed,
         Jump,
-        Cooldown
+        Cooldown,
+        CloneRange,
+        AttackSpeed,
+        DoubleJump // 🔥 เพิ่ม
     }
 
     UpgradeType[] currentOptions = new UpgradeType[3];
+
+    [Header("Scene Upgrades (Override Random)")]
+    public bool useFixedUpgrades = false;
+
+    [SerializeField]
+    UpgradeType[] fixedUpgrades = new UpgradeType[3];
+
+    bool isShowing = false;
 
     void Start()
     {
@@ -39,9 +55,11 @@ public class UpgradeManager : MonoBehaviour
 
     public void ShowUpgradePanel()
     {
+        if (isShowing) return;
+        isShowing = true;
+
         upgradePanel.SetActive(true);
         Time.timeScale = 0f;
-
         GenerateUpgrades();
     }
 
@@ -49,13 +67,21 @@ public class UpgradeManager : MonoBehaviour
     {
         upgradePanel.SetActive(false);
         Time.timeScale = 1f;
+        isShowing = false;
     }
 
     void GenerateUpgrades()
     {
-        for (int i = 0; i < 3; i++)
+        if (useFixedUpgrades && fixedUpgrades.Length >= 3)
         {
-            currentOptions[i] = (UpgradeType)Random.Range(0, System.Enum.GetValues(typeof(UpgradeType)).Length);
+            for (int i = 0; i < 3; i++)
+                currentOptions[i] = fixedUpgrades[i];
+        }
+        else
+        {
+            for (int i = 0; i < 3; i++)
+                currentOptions[i] = (UpgradeType)UnityEngine.Random.Range(
+                    0, Enum.GetValues(typeof(UpgradeType)).Length);
         }
 
         option1Text.text = GetUpgradeName(currentOptions[0]);
@@ -75,14 +101,13 @@ public class UpgradeManager : MonoBehaviour
     {
         switch (type)
         {
-            case UpgradeType.Speed:
-                return "Increase Speed";
-            case UpgradeType.Jump:
-                return "Increase Jump";
-            case UpgradeType.Cooldown:
-                return "Reduce Shadow Cooldown";
+            case UpgradeType.Speed: return "Increase Speed";
+            case UpgradeType.Jump: return "Increase Jump";
+            case UpgradeType.Cooldown: return "Reduce Shadow Cooldown";
+            case UpgradeType.CloneRange: return "Increase Clone Range";
+            case UpgradeType.AttackSpeed: return "Faster Exorcise";
+            case UpgradeType.DoubleJump: return "Unlock Double Jump"; // 🔥 เพิ่ม
         }
-
         return "";
     }
 
@@ -100,13 +125,26 @@ public class UpgradeManager : MonoBehaviour
 
             case UpgradeType.Cooldown:
                 playerStats.bodySwapCooldown -= cooldownReduceAmount;
-
                 if (playerStats.bodySwapCooldown < 1f)
                     playerStats.bodySwapCooldown = 1f;
+                break;
 
+            case UpgradeType.CloneRange:
+                playerStats.cloneRange += cloneRangeUpgradeAmount;
+                break;
+
+            case UpgradeType.AttackSpeed:
+                playerStats.attackChargeTime -= attackSpeedReduceAmount;
+                if (playerStats.attackChargeTime < 0.5f)
+                    playerStats.attackChargeTime = 0.5f;
+                break;
+
+            case UpgradeType.DoubleJump: // 🔥 เพิ่ม
+                playerStats.canDoubleJump = true;
                 break;
         }
 
         HideUpgradePanel();
+        OnUpgradeComplete?.Invoke();
     }
 }

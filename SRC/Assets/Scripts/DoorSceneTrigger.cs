@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class DoorSceneTrigger : MonoBehaviour
 {
@@ -11,6 +12,12 @@ public class DoorSceneTrigger : MonoBehaviour
 
     [Header("Pray Animation")]
     public float prayDuration = 2f;
+
+    [Header("Next Scene")]
+    public string nextSceneName;
+
+    [Header("Auto Save")]
+    public AutoSaveTrigger autoSaveTrigger;
 
     bool triggered = false;
 
@@ -26,10 +33,7 @@ public class DoorSceneTrigger : MonoBehaviour
         if (lifeManager.GetGhost() >= requiredGhostAmount)
         {
             triggered = true;
-
-            StartCoroutine(
-                PraySequence(player, lifeManager)
-            );
+            StartCoroutine(PraySequence(player, lifeManager));
         }
         else
         {
@@ -39,7 +43,7 @@ public class DoorSceneTrigger : MonoBehaviour
 
     IEnumerator PraySequence(PlayerControllerMain player, PlayerLifeManager lifeManager)
     {
-        // ▶ เล่น Pray
+        // ▶ เล่น Pray animation
         player.PlayPray(prayDuration);
 
         // ⏳ รอ animation
@@ -50,8 +54,38 @@ public class DoorSceneTrigger : MonoBehaviour
 
         // 🃏 เปิด Upgrade Panel
         if (upgradeManager != null)
-            upgradeManager.ShowUpgradePanel();
+        {
+            upgradeManager.OnUpgradeComplete = () =>
+            {
+                Debug.Log("Upgrade เสร็จ → เริ่ม Save");
 
-        Debug.Log("Pray เสร็จแล้ว → เปิดการ์ด");
+                if (autoSaveTrigger != null)
+                {
+                    // เรียก Coroutine ของ AutoSaveTrigger เพื่อ Save + แสดง UI
+                    StartCoroutine(autoSaveTrigger.SaveProcess(player.transform));
+
+                    // หลัง Save เสร็จ → เปลี่ยน Scene
+                    // ใน AutoSaveTrigger เราจะต้องเพิ่ม callback หรือใช้ Delay นิดหน่อย
+                    StartCoroutine(WaitAndLoadNextScene(autoSaveTrigger.finishDelay));
+                }
+                else
+                {
+                    // ถ้าไม่มี AutoSaveTrigger → เปลี่ยน Scene ทันที
+                    if (!string.IsNullOrEmpty(nextSceneName))
+                        SceneManager.LoadScene(nextSceneName);
+                }
+            };
+
+            upgradeManager.ShowUpgradePanel();
+        }
+
+        Debug.Log("Pray เสร็จแล้ว → เปิด Upgrade Panel");
+    }
+
+    IEnumerator WaitAndLoadNextScene(float delay)
+    {
+        yield return new WaitForSeconds(delay + 0.5f); // +0.5f ตาม SaveProcess
+        if (!string.IsNullOrEmpty(nextSceneName))
+            SceneManager.LoadScene(nextSceneName);
     }
 }

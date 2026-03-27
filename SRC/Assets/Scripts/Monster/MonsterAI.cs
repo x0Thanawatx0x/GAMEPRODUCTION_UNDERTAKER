@@ -1,4 +1,6 @@
+// ======================= MonsterAI.cs =======================
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class MonsterAI : MonoBehaviour
@@ -20,7 +22,7 @@ public class MonsterAI : MonoBehaviour
 
     [Header("Timing")]
     public float chargeTime = 1f;
-    public float holdETimeToDie = 3f;
+    [SerializeField] PlayerStats playerStats;
 
     [Header("Ghost Orb Spawn")]
     public GameObject ghostOrbPrefab;
@@ -36,6 +38,9 @@ public class MonsterAI : MonoBehaviour
     [Header("E Prompt")]
     public GameObject ePrompt;
 
+    [Header("UI")]
+    public Slider chargeSlider;
+
     private float timer;
     private Animator anim;
     private bool playerInRange = false;
@@ -49,34 +54,62 @@ public class MonsterAI : MonoBehaviour
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         SetState(State.Idle);
+
+        if (chargeSlider != null)
+        {
+            chargeSlider.maxValue = playerStats.attackChargeTime;
+            chargeSlider.value = 0f;
+            chargeSlider.gameObject.SetActive(false);
+        }
     }
 
     void Update()
     {
-        // แสดง E Prompt
         if (ePrompt != null)
             ePrompt.SetActive(playerInRange);
 
-        // --- กด/ปล่อย E ---
         if (playerInRange && currentState != State.Die)
         {
             if (Input.GetKey(KeyCode.E))
             {
                 holdETimer += Time.deltaTime;
 
-                // ถือตัว E ครบ Monster ตาย
-                if (holdETimer >= holdETimeToDie)
+                if (chargeSlider != null)
+                {
+                    chargeSlider.gameObject.SetActive(true);
+                    chargeSlider.value = holdETimer;
+                }
+
+                // 🔥 เล่น Animation Attack ของผู้เล่น
+                if (player != null)
+                {
+                    PlayerControllerMain playerController = player.GetComponent<PlayerControllerMain>();
+                    if (playerController != null)
+                    {
+                        playerController.PlayAttackAnimation();
+                    }
+                }
+
+                if (holdETimer >= playerStats.attackChargeTime)
                 {
                     StartCoroutine(PlayDieAnimationThenFade());
+                    holdETimer = 0f;
+
+                    if (chargeSlider != null)
+                        chargeSlider.gameObject.SetActive(false);
                 }
             }
             else
             {
                 holdETimer = 0f;
+                if (chargeSlider != null)
+                {
+                    chargeSlider.value = 0f;
+                    chargeSlider.gameObject.SetActive(false);
+                }
             }
         }
 
-        // --- ระบบ AI เดิม ---
         if (player == null || currentState == State.Die) return;
 
         float dist = Vector2.Distance(transform.position, player.position);
@@ -89,14 +122,8 @@ public class MonsterAI : MonoBehaviour
 
         switch (currentState)
         {
-            case State.Idle:
-                CheckPlayer(dist);
-                break;
-            case State.Charge:
-                Charge();
-                break;
-            case State.Attack:
-                break;
+            case State.Idle: CheckPlayer(dist); break;
+            case State.Charge: Charge(); break;
         }
     }
 
@@ -137,8 +164,10 @@ public class MonsterAI : MonoBehaviour
 
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
         Vector2 dir = (player.position - firePoint.position).normalized;
+
         Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-        if (rb != null) rb.velocity = dir * bulletSpeed;
+        if (rb != null)
+            rb.velocity = dir * bulletSpeed;
 
         Invoke(nameof(BackToIdle), 0.5f);
     }
@@ -168,6 +197,7 @@ public class MonsterAI : MonoBehaviour
     void PlayStateSound(State state)
     {
         if (audioSource == null) return;
+
         audioSource.Stop();
         AudioClip clipToPlay = null;
 
@@ -191,7 +221,16 @@ public class MonsterAI : MonoBehaviour
     {
         SetState(State.Die);
 
-        // Fade Monster จางหาย
+        // 🔥 ให้ผู้เล่นเล่น FinishAttack
+        if (player != null)
+        {
+            PlayerControllerMain playerController = player.GetComponent<PlayerControllerMain>();
+            if (playerController != null)
+            {
+                playerController.PlayFinishAttackAnimation();
+            }
+        }
+
         float alpha = spriteRenderer.color.a;
         while (alpha > 0f)
         {
@@ -218,4 +257,6 @@ public class MonsterAI : MonoBehaviour
             Instantiate(ghostOrbPrefab, (Vector2)transform.position + offset, Quaternion.identity);
         }
     }
+
 }
+

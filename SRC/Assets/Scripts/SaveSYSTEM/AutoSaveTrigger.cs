@@ -11,6 +11,9 @@ public class AutoSaveTrigger : MonoBehaviour
     [Header("Setting")]
     public float finishDelay = 1.5f;
 
+    [Header("Player Stats")]
+    public PlayerStats playerStats; // 🔹 ต้องลาก Inspector
+
     private bool hasSaved = false;
 
     void Start()
@@ -19,20 +22,13 @@ public class AutoSaveTrigger : MonoBehaviour
             saveText.gameObject.SetActive(false);
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    public IEnumerator SaveProcess(Transform player)
     {
-        if (other.CompareTag("Player") && !hasSaved)
+        if (saveText != null)
         {
-            hasSaved = true;
-            StartCoroutine(SaveProcess(other.transform));
+            saveText.gameObject.SetActive(true);
+            saveText.text = "Saving...";
         }
-    }
-
-    IEnumerator SaveProcess(Transform player)
-    {
-        // UI
-        saveText.gameObject.SetActive(true);
-        saveText.text = "Saving...";
 
         yield return new WaitForSeconds(0.5f);
 
@@ -44,11 +40,33 @@ public class AutoSaveTrigger : MonoBehaviour
         PlayerPrefs.SetFloat("PlayerY", player.position.y);
         PlayerPrefs.SetFloat("PlayerZ", player.position.z);
 
+        // ✅ Save PlayerStats
+        if (playerStats != null)
+            playerStats.Save();
+
         PlayerPrefs.Save();
 
-        saveText.text = "Finish";
+        if (saveText != null)
+            saveText.text = "Finish";
+
         yield return new WaitForSeconds(finishDelay);
 
-        saveText.gameObject.SetActive(false);
+        if (saveText != null)
+            saveText.gameObject.SetActive(false);
+    }
+
+    // 🔹 ฟังก์ชัน Load ใช้ตอนเริ่ม Scene
+    public void LoadPlayer(Transform player)
+    {
+        if (PlayerPrefs.HasKey("PlayerX"))
+        {
+            float x = PlayerPrefs.GetFloat("PlayerX");
+            float y = PlayerPrefs.GetFloat("PlayerY");
+            float z = PlayerPrefs.GetFloat("PlayerZ");
+            player.position = new Vector3(x, y, z);
+        }
+
+        if (playerStats != null)
+            playerStats.Load();
     }
 }

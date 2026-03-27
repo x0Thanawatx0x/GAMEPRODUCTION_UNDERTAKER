@@ -31,4 +31,21 @@ public class PlayerUpgradeManager : MonoBehaviour
 
         Debug.Log("Cooldown Reduced");
     }
+
+    // 🔥 ================= เพิ่มใหม่ =================
+    [Header("Clone Upgrade")]
+    public float cloneRangeUpgradeAmount = 5f;
+    public float maxCloneRange = 100f;
+
+    public void UpgradeCloneRange()
+    {
+        stats.cloneRange += cloneRangeUpgradeAmount;
+
+        // กันเกิน max
+        if (stats.cloneRange > maxCloneRange)
+            stats.cloneRange = maxCloneRange;
+
+        Debug.Log("Clone Range Upgraded: " + stats.cloneRange);
+    }
+    // ==============================================
 }

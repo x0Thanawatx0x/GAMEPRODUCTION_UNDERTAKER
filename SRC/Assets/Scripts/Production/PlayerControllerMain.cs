@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿// ======================= PlayerControllerMain.cs =======================
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +25,10 @@ public class PlayerControllerMain : MonoBehaviour
     [Header("=== Wall Movement ===")]
     [SerializeField] float wallSlideSpeed = 2f;
     [SerializeField] float wallJumpForceX = 8f;
-    [SerializeField] float wallJumpForceY = 10f;
+    [SerializeField] float wallJumpForceY = 12f;
+    [Header("=== Wall Gravity ===")]
+    [SerializeField] float wallSlideGravity = 0.3f;
+    [SerializeField] float normalGravity = 1.5f;
 
     [Header("=== Animation ===")]
     [SerializeField] Animator animator;
@@ -44,6 +48,10 @@ public class PlayerControllerMain : MonoBehaviour
     [Header("=== Clone Cooldown UI (Radial) ===")]
     [SerializeField] Image cloneCooldownCircle;
 
+    [Header("=== Better Jump ===")]
+    [SerializeField] float fallMultiplier = 2.5f;
+    [SerializeField] float lowJumpMultiplier = 2f;
+
     private float lastCloneTime = -999f;
 
     Rigidbody2D rb;
@@ -58,12 +66,16 @@ public class PlayerControllerMain : MonoBehaviour
     bool isFacingRight = true;
 
     int wallSide;
+    int jumpCount = 0;
 
     Vector2 groundNormal = Vector2.up;
-
     ParticleSystem.EmissionModule smokeEmission;
-
     bool lockAnimation = false;
+
+    bool isWallJumping = false;
+    float wallJumpTime = 0.15f;
+
+    bool isCloneMode = false;
 
     public bool CanUseClone()
     {
@@ -89,6 +101,8 @@ public class PlayerControllerMain : MonoBehaviour
 
         if (cloneCooldownCircle != null)
             cloneCooldownCircle.fillAmount = 1f;
+
+        rb.gravityScale = normalGravity;
     }
 
     void Update()
@@ -113,40 +127,50 @@ public class PlayerControllerMain : MonoBehaviour
 
         float targetSpeed = moveInput * playerStats.runSpeed;
 
-        if (isTouchingWall && !isGrounded && rb.velocity.y <= 0)
+        if (isTouchingWall && !isGrounded && moveInput == wallSide)
         {
-            rb.velocity = new Vector2(0, -wallSlideSpeed);
-            return;
+            rb.gravityScale = wallSlideGravity;
+            rb.velocity = new Vector2(0, Mathf.Max(rb.velocity.y, -wallSlideSpeed));
+            isWallJumping = false;
         }
-
-        if (isGrounded)
+        else if (isWallJumping)
         {
-            // ✅ Slope movement
-            Vector2 slopeDir = new Vector2(groundNormal.y, -groundNormal.x).normalized;
-            Vector2 targetVelocity = slopeDir * moveInput * playerStats.runSpeed;
-
-            // 🔥 FIX สำคัญ: ไม่ทับแรงกระโดด
-            rb.velocity = new Vector2(targetVelocity.x, rb.velocity.y);
-
-            // 🔥 Ground Stick (เฉพาะตอนกำลังตก)
-            if (rb.velocity.y < -0.1f)
-            {
-                rb.velocity += -groundNormal * 10f;
-            }
+            rb.gravityScale = normalGravity;
+            wallJumpTime -= Time.fixedDeltaTime;
+            if (wallJumpTime <= 0)
+                isWallJumping = false;
         }
         else
         {
-            float smooth = 5f;
-            float newX = Mathf.Lerp(rb.velocity.x, targetSpeed, smooth * Time.fixedDeltaTime);
+            rb.gravityScale = normalGravity;
 
-            rb.velocity = new Vector2(newX, rb.velocity.y);
+            if (isGrounded)
+            {
+                Vector2 slopeDir = new Vector2(groundNormal.y, -groundNormal.x).normalized;
+                Vector2 targetVelocity = slopeDir * moveInput * playerStats.runSpeed;
+
+                if (!Input.GetKey(KeyCode.Space))
+                    rb.velocity = new Vector2(targetVelocity.x, slopeDir.y * moveInput * playerStats.runSpeed);
+                else
+                    rb.velocity = new Vector2(targetVelocity.x, rb.velocity.y);
+            }
+            else
+            {
+                float smooth = 5f;
+                float newX = Mathf.Lerp(rb.velocity.x, targetSpeed, smooth * Time.fixedDeltaTime);
+                rb.velocity = new Vector2(newX, rb.velocity.y);
+            }
         }
+
+        if (rb.velocity.y < 0)
+            rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier * 1.5f - 1) * Time.fixedDeltaTime;
+        else if (rb.velocity.y > 0 && !Input.GetKey(KeyCode.Space))
+            rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.fixedDeltaTime;
     }
 
     void GroundCheck()
     {
         float extra = 0.2f;
-
         RaycastHit2D hitCenter = Physics2D.Raycast(groundRayOrigin.position, Vector2.down, groundRayLength + extra, groundLayer);
         RaycastHit2D hitLeft = Physics2D.Raycast(groundRayOrigin.position + Vector3.left * 0.2f, Vector2.down, groundRayLength + extra, groundLayer);
         RaycastHit2D hitRight = Physics2D.Raycast(groundRayOrigin.position + Vector3.right * 0.2f, Vector2.down, groundRayLength + extra, groundLayer);
@@ -158,6 +182,7 @@ public class PlayerControllerMain : MonoBehaviour
         {
             isGrounded = true;
             groundNormal = hit.normal;
+            jumpCount = 0;
         }
         else
         {
@@ -172,23 +197,25 @@ public class PlayerControllerMain : MonoBehaviour
         {
             if (isGrounded)
             {
-                // 🔥 กันโดน ground stick ทับ
-                rb.velocity = new Vector2(rb.velocity.x, 2f);
-
+                rb.velocity = new Vector2(rb.velocity.x, 0f);
                 rb.AddForce(Vector2.up * playerStats.jumpForce, ForceMode2D.Impulse);
+                jumpCount = 0;
             }
             else if (isTouchingWall && wallSide != 0)
             {
                 float jumpDir = -wallSide;
-
                 rb.velocity = Vector2.zero;
-
-                rb.AddForce(
-                    new Vector2(jumpDir * wallJumpForceX, wallJumpForceY),
-                    ForceMode2D.Impulse
-                );
-
+                rb.AddForce(new Vector2(jumpDir * wallJumpForceX, wallJumpForceY), ForceMode2D.Impulse);
                 isFacingRight = jumpDir > 0;
+
+                isWallJumping = true;
+                wallJumpTime = 0.15f;
+            }
+            else if (playerStats.canDoubleJump && jumpCount < 1)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, 0f);
+                rb.AddForce(Vector2.up * playerStats.jumpForce, ForceMode2D.Impulse);
+                jumpCount++;
             }
         }
     }
@@ -222,12 +249,7 @@ public class PlayerControllerMain : MonoBehaviour
         else if (moveInput < 0) isFacingRight = false;
 
         float dir = isFacingRight ? 1 : -1;
-
-        transform.localScale = new Vector3(
-            dir * Mathf.Abs(originalScale.x),
-            originalScale.y,
-            originalScale.z
-        );
+        transform.localScale = new Vector3(dir * Mathf.Abs(originalScale.x), originalScale.y, originalScale.z);
     }
 
     void HandleAnimation()
@@ -258,18 +280,13 @@ public class PlayerControllerMain : MonoBehaviour
 
         if (isTouchingWall && !isGrounded)
         {
-            if (!wallSmoke.isPlaying)
-                wallSmoke.Play();
-
+            if (!wallSmoke.isPlaying) wallSmoke.Play();
             smokeEmission.rateOverTime = Mathf.Abs(rb.velocity.y) * 15f;
-
             wallSmoke.transform.localPosition = new Vector3(wallSide * 0.3f, 0, 0);
         }
         else
         {
-            if (wallSmoke.isPlaying)
-                wallSmoke.Stop();
-
+            if (wallSmoke.isPlaying) wallSmoke.Stop();
             smokeEmission.rateOverTime = 0;
         }
     }
@@ -277,9 +294,7 @@ public class PlayerControllerMain : MonoBehaviour
     void HandleLandingSound()
     {
         if (!wasGrounded && isGrounded && landingClip != null && rb.velocity.y <= minLandingVelocity)
-        {
             audioSource.PlayOneShot(landingClip, landingVolume);
-        }
 
         wasGrounded = isGrounded;
     }
@@ -296,16 +311,13 @@ public class PlayerControllerMain : MonoBehaviour
     public void EnableControl(bool value)
     {
         canMove = value;
-
-        if (!value)
-            rb.velocity = Vector2.zero;
+        if (!value) rb.velocity = Vector2.zero;
     }
 
     public void PlayFootstep()
     {
         if (!isGrounded) return;
         if (footstepClip == null) return;
-
         audioSource.PlayOneShot(footstepClip, footstepVolume);
     }
 
@@ -320,9 +332,76 @@ public class PlayerControllerMain : MonoBehaviour
         canMove = false;
 
         animator.Play("Pray", 0, 0f);
-
         yield return new WaitForSeconds(duration);
 
+        lockAnimation = false;
+        canMove = true;
+    }
+
+    public void SetCloneMode(bool value)
+    {
+        isCloneMode = value;
+
+        if (isCloneMode)
+            rb.gravityScale = 0.7f;
+        else
+            rb.gravityScale = 1.5f;
+    }
+
+    // ===================== Attack Animation =====================
+    public void PlayAttackAnimation()
+    {
+        if (animator != null && !lockAnimation)
+        {
+            StartCoroutine(AttackRoutine());
+        }
+    }
+
+    IEnumerator AttackRoutine()
+    {
+        lockAnimation = true;
+        canMove = false;
+
+        // ล็อค velocity เพื่อไม่ให้ตัวละครสไลด์
+        Vector2 originalVelocity = rb.velocity;
+        rb.velocity = Vector2.zero;
+
+        // เล่น Animation Attack 1 รอบ
+        animator.Play("Attack", 0, 1);
+
+        // รอจน Animation Attack จบ
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(1).length);
+
+        // คืนค่า velocity หลัง Animation
+        rb.velocity = originalVelocity;
+
+        lockAnimation = false;
+        canMove = true;
+    }
+    // ===================== Finish Attack Animation =====================
+    public void PlayFinishAttackAnimation()
+    {
+        if (animator != null && !lockAnimation)
+        {
+            StartCoroutine(FinishAttackRoutine());
+        }
+    }
+
+   public IEnumerator FinishAttackRoutine()
+    {
+        lockAnimation = true;
+        canMove = false;
+
+        Vector2 originalVelocity = rb.velocity;
+        rb.velocity = Vector2.zero;
+
+        // เล่น Animation FinishAttack
+        animator.Play("FinishAttack", 0, 1f);
+
+        // รอจน Animation จบ
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+
+        rb.velocity = originalVelocity;
         lockAnimation = false;
         canMove = true;
     }
