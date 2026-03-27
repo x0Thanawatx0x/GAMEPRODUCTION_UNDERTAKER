@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class PlayerLifeManager : MonoBehaviour
 {
@@ -25,6 +26,11 @@ public class PlayerLifeManager : MonoBehaviour
     public TextMeshProUGUI trapCountText;
     public TextMeshProUGUI ghostCountText;
     public TextMeshProUGUI moneyText;
+
+    [Header("Ghost UI Images")]
+    public Image[] ghostUIImages; // ใส่ 5 รูปใน Inspector
+    public Sprite ghostEmptySprite; // รูปวิญญาณยังไม่ได้เก็บ
+    public Sprite ghostFullSprite;  // รูปวิญญาณเก็บแล้ว
 
     void Start()
     {
@@ -55,7 +61,7 @@ public class PlayerLifeManager : MonoBehaviour
     // ===== TRAP =====
     void UpdateTrapUI()
     {
-        trapCountText.text = $"Trap Hit : {trapCount}";
+        trapCountText.text = $"DEAD: {trapCount}";
     }
 
     public void CountTrap()
@@ -75,7 +81,20 @@ public class PlayerLifeManager : MonoBehaviour
     // ===== GHOST =====
     void UpdateGhostUI()
     {
+        // อัปเดตข้อความ Ghost Count
         ghostCountText.text = $"Ghost : {ghostCount}";
+
+        // อัปเดตรูปวิญญาณใน UI
+        if (ghostUIImages != null && ghostUIImages.Length > 0)
+        {
+            for (int i = 0; i < ghostUIImages.Length; i++)
+            {
+                if (i < ghostCount)
+                    ghostUIImages[i].sprite = ghostFullSprite; // เปลี่ยนเป็นรูปเก็บแล้ว
+                else
+                    ghostUIImages[i].sprite = ghostEmptySprite; // ยังไม่ได้เก็บ
+            }
+        }
     }
 
     public void AddGhost(int amount = 1)

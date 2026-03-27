@@ -351,34 +351,34 @@ public class PlayerControllerMain : MonoBehaviour
     // ===================== Attack Animation =====================
     public void PlayAttackAnimation()
     {
-        if (animator != null && !lockAnimation)
+        if (animator != null)
         {
+            // เรียก Coroutine โดยไม่เช็ค lockAnimation
             StartCoroutine(AttackRoutine());
         }
     }
 
     IEnumerator AttackRoutine()
     {
+        bool wasLocked = lockAnimation;
         lockAnimation = true;
         canMove = false;
 
-        // ล็อค velocity เพื่อไม่ให้ตัวละครสไลด์
         Vector2 originalVelocity = rb.velocity;
         rb.velocity = Vector2.zero;
 
         // เล่น Animation Attack 1 รอบ
-        animator.Play("Attack", 0, 1);
+        animator.Play("Attack", 0, 0);
 
         // รอจน Animation Attack จบ
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(1).length);
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
 
-        // คืนค่า velocity หลัง Animation
+        // คืนค่า velocity และ lockAnimation
         rb.velocity = originalVelocity;
-
-        lockAnimation = false;
+        lockAnimation = wasLocked;
         canMove = true;
     }
-    // ===================== Finish Attack Animation =====================
+  
     public void PlayFinishAttackAnimation()
     {
         if (animator != null && !lockAnimation)
