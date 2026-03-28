@@ -28,14 +28,16 @@ public class PlayerLifeManager : MonoBehaviour
     public TextMeshProUGUI moneyText;
 
     [Header("Ghost UI Images")]
-    public Image[] ghostUIImages; // ใส่ 5 รูปใน Inspector
-    public Sprite ghostEmptySprite; // รูปวิญญาณยังไม่ได้เก็บ
-    public Sprite ghostFullSprite;  // รูปวิญญาณเก็บแล้ว
+    public Image[] ghostUIImages;
+    public Sprite ghostEmptySprite;
+    public Sprite ghostFullSprite;
+
+    [Header("Upgrade Reference")]
+    public UpgradeManager upgradeManager; // 🔥 ลาก Object UpgradeManager มาใส่ในช่องนี้
 
     void Start()
     {
         playTime = 0f;
-
         if (playerAnimator == null)
             playerAnimator = GetComponent<Animator>();
 
@@ -50,7 +52,6 @@ public class PlayerLifeManager : MonoBehaviour
         UpdateTimeUI();
     }
 
-    // ===== TIME =====
     void UpdateTimeUI()
     {
         int minutes = Mathf.FloorToInt(playTime / 60f);
@@ -58,7 +59,6 @@ public class PlayerLifeManager : MonoBehaviour
         timeText.text = $"Time : {minutes:00}:{seconds:00}";
     }
 
-    // ===== TRAP =====
     void UpdateTrapUI()
     {
         trapCountText.text = $"DEAD: {trapCount}";
@@ -67,7 +67,6 @@ public class PlayerLifeManager : MonoBehaviour
     public void CountTrap()
     {
         if (!canCountTrap) return;
-
         trapCount++;
         UpdateTrapUI();
         canCountTrap = false;
@@ -78,23 +77,24 @@ public class PlayerLifeManager : MonoBehaviour
         canCountTrap = true;
     }
 
-    // ===== GHOST =====
     void UpdateGhostUI()
     {
-        // อัปเดตข้อความ Ghost Count
         ghostCountText.text = $"Ghost : {ghostCount}";
-
-        // อัปเดตรูปวิญญาณใน UI
         if (ghostUIImages != null && ghostUIImages.Length > 0)
         {
             for (int i = 0; i < ghostUIImages.Length; i++)
             {
                 if (i < ghostCount)
-                    ghostUIImages[i].sprite = ghostFullSprite; // เปลี่ยนเป็นรูปเก็บแล้ว
+                    ghostUIImages[i].sprite = ghostFullSprite;
                 else
-                    ghostUIImages[i].sprite = ghostEmptySprite; // ยังไม่ได้เก็บ
+                    ghostUIImages[i].sprite = ghostEmptySprite;
             }
         }
+    }
+
+    public void UpdateMoneyUI_Public()
+    {
+        UpdateMoneyUI();
     }
 
     public void AddGhost(int amount = 1)
@@ -114,7 +114,6 @@ public class PlayerLifeManager : MonoBehaviour
         return ghostCount;
     }
 
-    // ===== MONEY =====
     void UpdateMoneyUI()
     {
         moneyText.text = $"Money : {money}";
@@ -128,14 +127,17 @@ public class PlayerLifeManager : MonoBehaviour
 
         UpdateMoneyUI();
         UpdateGhostUI();
+
+        // 🔥 สั่งให้ UpgradeManager เช็คเงินใหม่ทันทีที่เงินเข้ากระเป๋า
+        if (upgradeManager != null)
+        {
+            upgradeManager.RefreshButtonInteractable();
+        }
     }
 
-    // ===== PLAY PRAY ANIMATION =====
     public void PlayPrayAnimation(string animationName)
     {
         if (playerAnimator != null)
-        {
             playerAnimator.Play(animationName, 0, 0f);
-        }
     }
 }

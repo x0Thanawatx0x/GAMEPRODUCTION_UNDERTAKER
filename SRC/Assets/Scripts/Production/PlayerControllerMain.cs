@@ -1,5 +1,4 @@
-﻿// ======================= PlayerControllerMain.cs =======================
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,8 +23,13 @@ public class PlayerControllerMain : MonoBehaviour
 
     [Header("=== Wall Movement ===")]
     [SerializeField] float wallSlideSpeed = 2f;
-    [SerializeField] float wallJumpForceX = 8f;
+    [SerializeField] float wallJumpForceX = 10f; // แนะนำให้ปรับเป็น 10-12 เพื่อให้ดีดตัวพ้นระยะกำแพง
     [SerializeField] float wallJumpForceY = 12f;
+
+    [Header("=== Wall Jump Cooldown ===")]
+    [SerializeField] float wallJumpCooldown = 0.5f;
+    private bool canWallJump = true;
+
     [Header("=== Wall Gravity ===")]
     [SerializeField] float wallSlideGravity = 0.3f;
     [SerializeField] float normalGravity = 1.5f;
@@ -56,36 +60,23 @@ public class PlayerControllerMain : MonoBehaviour
 
     Rigidbody2D rb;
     AudioSource audioSource;
-
     Vector3 originalScale;
-
     float moveInput;
     bool isGrounded;
     bool wasGrounded;
     bool isTouchingWall;
     bool isFacingRight = true;
-
     int wallSide;
     int jumpCount = 0;
-
     Vector2 groundNormal = Vector2.up;
     ParticleSystem.EmissionModule smokeEmission;
     bool lockAnimation = false;
-
     bool isWallJumping = false;
-    float wallJumpTime = 0.15f;
-
+    float wallJumpTime = 0.2f; // ปรับเวลาล็อคการควบคุมแนวนอนเล็กน้อย
     bool isCloneMode = false;
 
-    public bool CanUseClone()
-    {
-        return Time.time >= lastCloneTime + playerStats.bodySwapCooldown;
-    }
-
-    public void StartCloneCooldown()
-    {
-        lastCloneTime = Time.time;
-    }
+    public bool CanUseClone() => Time.time >= lastCloneTime + playerStats.bodySwapCooldown;
+    public void StartCloneCooldown() => lastCloneTime = Time.time;
 
     void Start()
     {
@@ -175,8 +166,7 @@ public class PlayerControllerMain : MonoBehaviour
         RaycastHit2D hitLeft = Physics2D.Raycast(groundRayOrigin.position + Vector3.left * 0.2f, Vector2.down, groundRayLength + extra, groundLayer);
         RaycastHit2D hitRight = Physics2D.Raycast(groundRayOrigin.position + Vector3.right * 0.2f, Vector2.down, groundRayLength + extra, groundLayer);
 
-        RaycastHit2D hit = hitCenter.collider ? hitCenter :
-                           (hitLeft.collider ? hitLeft : hitRight);
+        RaycastHit2D hit = hitCenter.collider ? hitCenter : (hitLeft.collider ? hitLeft : hitRight);
 
         if (hit.collider != null)
         {
@@ -201,15 +191,21 @@ public class PlayerControllerMain : MonoBehaviour
                 rb.AddForce(Vector2.up * playerStats.jumpForce, ForceMode2D.Impulse);
                 jumpCount = 0;
             }
-            else if (isTouchingWall && wallSide != 0)
+            // 🔥 ปรับปรุงระบบ Wall Jump: ล็อค canWallJump ทันทีที่กด
+            else if (isTouchingWall && wallSide != 0 && canWallJump)
             {
+                canWallJump = false; // ล็อคการกระโดดกำแพงทันที
+
                 float jumpDir = -wallSide;
-                rb.velocity = Vector2.zero;
+                rb.velocity = Vector2.zero; // ล้างความเร็วเก่าเพื่อให้แรงดีดทำงานได้เต็มที่
+
                 rb.AddForce(new Vector2(jumpDir * wallJumpForceX, wallJumpForceY), ForceMode2D.Impulse);
                 isFacingRight = jumpDir > 0;
 
                 isWallJumping = true;
-                wallJumpTime = 0.15f;
+                wallJumpTime = 0.25f; // ล็อค moveInput ชั่วคราวเพื่อให้ตัวละครดีดตัวพ้นระยะกำแพง
+
+                StartCoroutine(WallJumpCooldownRoutine());
             }
             else if (playerStats.canDoubleJump && jumpCount < 1)
             {
@@ -220,27 +216,22 @@ public class PlayerControllerMain : MonoBehaviour
         }
     }
 
+    IEnumerator WallJumpCooldownRoutine()
+    {
+        // canWallJump เป็น false อยู่แล้วจากการกด Space
+        yield return new WaitForSeconds(wallJumpCooldown);
+        canWallJump = true; // คืนสถานะให้กระโดดกำแพงได้อีกครั้งหลังผ่านไป 0.5 วินาที
+    }
+
     void WallCheck()
     {
         wallSide = 0;
-
         RaycastHit2D hitRight = Physics2D.Raycast(wallCheck.position, Vector2.right, wallCheckDistance, wallLayer);
         RaycastHit2D hitLeft = Physics2D.Raycast(wallCheck.position, Vector2.left, wallCheckDistance, wallLayer);
 
-        if (hitRight.collider != null)
-        {
-            isTouchingWall = true;
-            wallSide = 1;
-        }
-        else if (hitLeft.collider != null)
-        {
-            isTouchingWall = true;
-            wallSide = -1;
-        }
-        else
-        {
-            isTouchingWall = false;
-        }
+        if (hitRight.collider != null) { isTouchingWall = true; wallSide = 1; }
+        else if (hitLeft.collider != null) { isTouchingWall = true; wallSide = -1; }
+        else { isTouchingWall = false; }
     }
 
     void HandleFlip()
@@ -302,7 +293,6 @@ public class PlayerControllerMain : MonoBehaviour
     void UpdateCloneCooldownUI()
     {
         if (cloneCooldownCircle == null) return;
-
         float elapsed = Time.time - lastCloneTime;
         float value = Mathf.Clamp01(elapsed / playerStats.bodySwapCooldown);
         cloneCooldownCircle.fillAmount = value;
@@ -316,24 +306,18 @@ public class PlayerControllerMain : MonoBehaviour
 
     public void PlayFootstep()
     {
-        if (!isGrounded) return;
-        if (footstepClip == null) return;
+        if (!isGrounded || footstepClip == null) return;
         audioSource.PlayOneShot(footstepClip, footstepVolume);
     }
 
-    public void PlayPray(float duration)
-    {
-        StartCoroutine(PrayRoutine(duration));
-    }
+    public void PlayPray(float duration) => StartCoroutine(PrayRoutine(duration));
 
     IEnumerator PrayRoutine(float duration)
     {
         lockAnimation = true;
         canMove = false;
-
         animator.Play("Pray", 0, 0f);
         yield return new WaitForSeconds(duration);
-
         lockAnimation = false;
         canMove = true;
     }
@@ -341,66 +325,38 @@ public class PlayerControllerMain : MonoBehaviour
     public void SetCloneMode(bool value)
     {
         isCloneMode = value;
-
-        if (isCloneMode)
-            rb.gravityScale = 0.7f;
-        else
-            rb.gravityScale = 1.5f;
+        rb.gravityScale = isCloneMode ? 0.7f : 1.5f;
     }
 
-    // ===================== Attack Animation =====================
-    public void PlayAttackAnimation()
-    {
-        if (animator != null)
-        {
-            // เรียก Coroutine โดยไม่เช็ค lockAnimation
-            StartCoroutine(AttackRoutine());
-        }
-    }
+    public void PlayAttackAnimation() => StartCoroutine(AttackRoutine());
 
     IEnumerator AttackRoutine()
     {
         bool wasLocked = lockAnimation;
         lockAnimation = true;
         canMove = false;
-
         Vector2 originalVelocity = rb.velocity;
         rb.velocity = Vector2.zero;
-
-        // เล่น Animation Attack 1 รอบ
         animator.Play("Attack", 0, 0);
-
-        // รอจน Animation Attack จบ
         yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
-
-        // คืนค่า velocity และ lockAnimation
         rb.velocity = originalVelocity;
         lockAnimation = wasLocked;
         canMove = true;
     }
-  
+
     public void PlayFinishAttackAnimation()
     {
-        if (animator != null && !lockAnimation)
-        {
-            StartCoroutine(FinishAttackRoutine());
-        }
+        if (animator != null && !lockAnimation) StartCoroutine(FinishAttackRoutine());
     }
 
-   public IEnumerator FinishAttackRoutine()
+    public IEnumerator FinishAttackRoutine()
     {
         lockAnimation = true;
         canMove = false;
-
         Vector2 originalVelocity = rb.velocity;
         rb.velocity = Vector2.zero;
-
-        // เล่น Animation FinishAttack
         animator.Play("FinishAttack", 0, 1f);
-
-        // รอจน Animation จบ
         yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
-
         rb.velocity = originalVelocity;
         lockAnimation = false;
         canMove = true;

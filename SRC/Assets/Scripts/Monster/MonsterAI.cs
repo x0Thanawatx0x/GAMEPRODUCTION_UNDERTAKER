@@ -1,70 +1,74 @@
-    // ======================= MonsterAI.cs =======================
-    using UnityEngine;
-    using UnityEngine.UI;
-    using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 
-    public class MonsterAI : MonoBehaviour
-    {
-        public enum State { Idle, Charge, Attack, Die }
-        [SerializeField] private State currentState = State.Idle;
+public class MonsterAI : MonoBehaviour
+{
+    public enum State { Idle, Charge, Attack, Die }
+    [SerializeField] private State currentState = State.Idle;
 
-        [Header("Target")]
-        public Transform player;
+    [Header("Target")]
+    public Transform player;
 
-        [Header("Attack")]
-        public GameObject bulletPrefab;
-        public Transform firePoint;
-        public float bulletSpeed = 10f;
+    [Header("Attack")]
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public float bulletSpeed = 10f;
 
-        [Header("Detection")]
-        public float detectRange = 6f;
-        public float stopAttackRange = 2f;
+    [Header("Detection")]
+    public float detectRange = 6f;
+    public float stopAttackRange = 2f;
 
-        [Header("Timing")]
-        public float chargeTime = 1f;
-        [SerializeField] PlayerStats playerStats;
+    [Header("Timing")]
+    public float chargeTime = 1f;
+    [SerializeField] PlayerStats playerStats;
 
-        [Header("Ghost Orb Spawn")]
-        public GameObject ghostOrbPrefab;
-        public Vector2 orbSpawnOffset = new Vector2(0f, 1f);
+    [Header("Ghost Orb Spawn")]
+    public GameObject ghostOrbPrefab;
+    public Vector2 orbSpawnOffset = new Vector2(0f, 1f);
 
-        [Header("Audio")]
-        public AudioSource audioSource;
-        public AudioClip idleSound;
-        public AudioClip chargeSound;
-        public AudioClip attackSound;
-        public AudioClip dieSound;
+    [Header("Audio")]
+    public AudioSource audioSource;
+    public AudioClip idleSound;
+    public AudioClip chargeSound;
+    public AudioClip attackSound;
+    public AudioClip dieSound;
+    [Range(0, 1)] public float maxVolume = 1f; // ระดับเสียงสูงสุดที่ยอมให้ดังได้
 
-        [Header("E Prompt")]
-        public GameObject ePrompt;
+    [Header("E Prompt")]
+    public GameObject ePrompt;
 
-        [Header("UI")]
-        public Slider chargeSlider;
+    [Header("UI")]
+    public Slider chargeSlider;
 
-        private float timer;
-        private Animator anim;
-        private bool playerInRange = false;
-        private float holdETimer = 0f;
-        private SpriteRenderer spriteRenderer;
-        public float fadeSpeed = 1f;
+    private float timer;
+    private Animator anim;
+    private bool playerInRange = false;
+    private float holdETimer = 0f;
+    private SpriteRenderer spriteRenderer;
+    public float fadeSpeed = 1f;
     private bool playerAttackTriggered = false;
-    void Start()
-        {
-            anim = GetComponent<Animator>();
-            if (audioSource == null) audioSource = GetComponent<AudioSource>();
-            spriteRenderer = GetComponent<SpriteRenderer>();
-            SetState(State.Idle);
 
-            if (chargeSlider != null)
-            {
-                chargeSlider.maxValue = playerStats.attackChargeTime;
-                chargeSlider.value = 0f;
-                chargeSlider.gameObject.SetActive(false);
-            }
+    void Start()
+    {
+        anim = GetComponent<Animator>();
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        SetState(State.Idle);
+
+        if (chargeSlider != null)
+        {
+            chargeSlider.maxValue = playerStats.attackChargeTime;
+            chargeSlider.value = 0f;
+            chargeSlider.gameObject.SetActive(false);
         }
+    }
 
     void Update()
     {
+        // 🔥 ส่วนใหม่: อัปเดตระดับเสียงตามระยะห่าง (ยิ่งใกล้มากยิ่งดังมาก)
+        UpdateSoundVolume();
+
         if (ePrompt != null)
             ePrompt.SetActive(playerInRange);
 
@@ -80,7 +84,6 @@
                     chargeSlider.value = holdETimer;
                 }
 
-                // 🔥 เล่น Animation Attack ของผู้เล่นแค่ครั้งเดียวต่อการกด E
                 if (!playerAttackTriggered && player != null)
                 {
                     PlayerControllerMain playerController = player.GetComponent<PlayerControllerMain>();
@@ -99,13 +102,13 @@
                     if (chargeSlider != null)
                         chargeSlider.gameObject.SetActive(false);
 
-                    playerAttackTriggered = false; // reset สำหรับครั้งถัดไป
+                    playerAttackTriggered = false;
                 }
             }
             else
             {
                 holdETimer = 0f;
-                playerAttackTriggered = false; // reset ถ้าเลิกกด E
+                playerAttackTriggered = false;
 
                 if (chargeSlider != null)
                 {
@@ -132,136 +135,154 @@
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    // 🔥 ฟังก์ชันคำนวณระดับเสียง
+    void UpdateSoundVolume()
+    {
+        if (player == null || audioSource == null || currentState == State.Die) return;
+
+        float dist = Vector2.Distance(transform.position, player.position);
+
+        if (dist <= detectRange)
         {
-            if (other.CompareTag("Player"))
-                playerInRange = true;
+            // ยิ่งระยะห่างน้อย (ใกล้) ค่า volume ยิ่งเข้าใกล้ 1
+            float volumeLevel = 1f - (dist / detectRange);
+            audioSource.volume = Mathf.Clamp01(volumeLevel * maxVolume);
         }
-
-        void OnTriggerExit2D(Collider2D other)
+        else
         {
-            if (other.CompareTag("Player"))
-                playerInRange = false;
+            audioSource.volume = 0f;
         }
-
-        void CheckPlayer(float dist)
-        {
-            if (dist < detectRange)
-            {
-                timer = chargeTime;
-                SetState(State.Charge);
-            }
-        }
-
-        void Charge()
-        {
-            timer -= Time.deltaTime;
-            if (timer <= 0)
-            {
-                SetState(State.Attack);
-                Shoot();
-            }
-        }
-
-        void Shoot()
-        {
-            if (player == null) return;
-
-            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
-            Vector2 dir = (player.position - firePoint.position).normalized;
-
-            Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-            if (rb != null)
-                rb.velocity = dir * bulletSpeed;
-
-            Invoke(nameof(BackToIdle), 0.5f);
-        }
-
-        void BackToIdle()
-        {
-            if (currentState != State.Die)
-                SetState(State.Idle);
-        }
-
-        void SetState(State newState)
-        {
-            currentState = newState;
-            PlayStateSound(newState);
-
-            if (anim == null) return;
-
-            switch (newState)
-            {
-                case State.Idle: anim.Play("MIdle"); break;
-                case State.Charge: anim.Play("MCharge"); break;
-                case State.Attack: anim.Play("MAttack"); break;
-                case State.Die: anim.Play("DieM"); break;
-            }
-        }
-
-        void PlayStateSound(State state)
-        {
-            if (audioSource == null) return;
-
-            audioSource.Stop();
-            AudioClip clipToPlay = null;
-
-            switch (state)
-            {
-                case State.Idle: clipToPlay = idleSound; break;
-                case State.Charge: clipToPlay = chargeSound; break;
-                case State.Attack: clipToPlay = attackSound; break;
-                case State.Die: clipToPlay = dieSound; break;
-            }
-
-            if (clipToPlay != null)
-            {
-                audioSource.clip = clipToPlay;
-                audioSource.loop = (state == State.Idle);
-                audioSource.Play();
-            }
-        }
-
-        IEnumerator PlayDieAnimationThenFade()
-        {
-            SetState(State.Die);
-
-            // 🔥 ให้ผู้เล่นเล่น FinishAttack
-            if (player != null)
-            {
-                PlayerControllerMain playerController = player.GetComponent<PlayerControllerMain>();
-                if (playerController != null)
-                {
-                    playerController.PlayFinishAttackAnimation();
-                }
-            }
-
-            float alpha = spriteRenderer.color.a;
-            while (alpha > 0f)
-            {
-                alpha -= fadeSpeed * Time.deltaTime;
-                spriteRenderer.color = new Color(1f, 1f, 1f, alpha);
-                yield return null;
-            }
-
-            SpawnGhostOrbs();
-            Destroy(gameObject);
-        }
-
-        void SpawnGhostOrbs()
-        {
-            if (ghostOrbPrefab == null) return;
-
-            if (Random.value < 0.5f)
-            {
-                Vector2 offset = new Vector2(
-                    Random.Range(-orbSpawnOffset.x, orbSpawnOffset.x),
-                    Random.Range(0, orbSpawnOffset.y)
-                );
-
-                Instantiate(ghostOrbPrefab, (Vector2)transform.position + offset, Quaternion.identity);
-            }
-        }
-
     }
 
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+            playerInRange = true;
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+            playerInRange = false;
+    }
+
+    void CheckPlayer(float dist)
+    {
+        if (dist < detectRange)
+        {
+            timer = chargeTime;
+            SetState(State.Charge);
+        }
+    }
+
+    void Charge()
+    {
+        timer -= Time.deltaTime;
+        if (timer <= 0)
+        {
+            SetState(State.Attack);
+            Shoot();
+        }
+    }
+
+    void Shoot()
+    {
+        if (player == null) return;
+
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+        Vector2 dir = (player.position - firePoint.position).normalized;
+
+        Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
+        if (rb != null)
+            rb.velocity = dir * bulletSpeed;
+
+        Invoke(nameof(BackToIdle), 0.5f);
+    }
+
+    void BackToIdle()
+    {
+        if (currentState != State.Die)
+            SetState(State.Idle);
+    }
+
+    void SetState(State newState)
+    {
+        currentState = newState;
+        PlayStateSound(newState);
+
+        if (anim == null) return;
+
+        switch (newState)
+        {
+            case State.Idle: anim.Play("MIdle"); break;
+            case State.Charge: anim.Play("MCharge"); break;
+            case State.Attack: anim.Play("MAttack"); break;
+            case State.Die: anim.Play("DieM"); break;
+        }
+    }
+
+    void PlayStateSound(State state)
+    {
+        if (audioSource == null) return;
+
+        AudioClip clipToPlay = null;
+
+        switch (state)
+        {
+            case State.Idle: clipToPlay = idleSound; break;
+            case State.Charge: clipToPlay = chargeSound; break;
+            case State.Attack: clipToPlay = attackSound; break;
+            case State.Die: clipToPlay = dieSound; break;
+        }
+
+        if (clipToPlay != null)
+        {
+            // ถ้าเป็นคลิปเดิมที่กำลังเล่นอยู่ (เช่น Idle) ไม่ต้องสั่ง Play ใหม่เพื่อป้องกันเสียงกระตุก
+            if (audioSource.clip == clipToPlay && audioSource.isPlaying) return;
+
+            audioSource.clip = clipToPlay;
+            audioSource.loop = (state == State.Idle);
+            audioSource.Play();
+        }
+    }
+
+    IEnumerator PlayDieAnimationThenFade()
+    {
+        SetState(State.Die);
+
+        if (player != null)
+        {
+            PlayerControllerMain playerController = player.GetComponent<PlayerControllerMain>();
+            if (playerController != null)
+            {
+                playerController.PlayFinishAttackAnimation();
+            }
+        }
+
+        float alpha = spriteRenderer.color.a;
+        while (alpha > 0f)
+        {
+            alpha -= fadeSpeed * Time.deltaTime;
+            spriteRenderer.color = new Color(1f, 1f, 1f, alpha);
+            yield return null;
+        }
+
+        SpawnGhostOrbs();
+        Destroy(gameObject);
+    }
+
+    void SpawnGhostOrbs()
+    {
+        if (ghostOrbPrefab == null) return;
+
+        if (Random.value < 0.5f)
+        {
+            Vector2 offset = new Vector2(
+                Random.Range(-orbSpawnOffset.x, orbSpawnOffset.x),
+                Random.Range(0, orbSpawnOffset.y)
+            );
+
+            Instantiate(ghostOrbPrefab, (Vector2)transform.position + offset, Quaternion.identity);
+        }
+    }
+}

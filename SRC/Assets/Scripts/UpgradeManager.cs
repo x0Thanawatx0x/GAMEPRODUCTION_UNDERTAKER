@@ -2,15 +2,16 @@
 using UnityEngine.UI;
 using TMPro;
 using System;
+using System.Collections;
 
 public class UpgradeManager : MonoBehaviour
 {
-    [Header("UI")]
+    [Header("UI Text Elements")]
     public GameObject upgradePanel;
     public Button option1Button, option2Button, option3Button;
     public TextMeshProUGUI option1Text, option2Text, option3Text;
+    public TextMeshProUGUI option1CostText, option2CostText, option3CostText;
 
-    // 🔥 เปลี่ยน Reference เป็น CardVisualUI (ฉบับตัดระบบหมุน)
     [Header("Card Visual Components")]
     public CardVisualUI card1Visual;
     public CardVisualUI card2Visual;
@@ -24,25 +25,37 @@ public class UpgradeManager : MonoBehaviour
     public Sprite attackSpeedSprite;
     public Sprite doubleJumpSprite;
 
-    [Header("Player Stats")]
+    [Header("References")]
     public PlayerStats playerStats;
+    public PlayerLifeManager playerLife;
 
-    [Header("Upgrade Values")]
+    [Header("Upgrade Values Settings")]
     public float speedUpgradeAmount = 1f;
     public float jumpUpgradeAmount = 2f;
     public float cooldownReduceAmount = 1f;
     public float cloneRangeUpgradeAmount = 1f;
     public float attackSpeedReduceAmount = 0.5f;
 
+    [Header("Upgrade Cost Settings")]
+    public int speedCost = 100;
+    public int jumpCost = 100;
+    public int cooldownCost = 150;
+    public int cloneRangeCost = 120;
+    public int attackSpeedCost = 200;
+    public int doubleJumpCost = 500;
+
     public Action OnUpgradeComplete;
 
     enum UpgradeType { Speed, Jump, Cooldown, CloneRange, AttackSpeed, DoubleJump }
+
+    [Header("Fixed Upgrade Settings")]
+    public bool useFixedUpgrades = true; // 🔹 ติ๊กถูกถ้าไม่ต้องการสุ่ม
+    [SerializeField] UpgradeType option1Type = UpgradeType.Speed; // 🔹 กำหนดใบที่ 1
+    [SerializeField] UpgradeType option2Type = UpgradeType.Jump;  // 🔹 กำหนดใบที่ 2
+    [SerializeField] UpgradeType option3Type = UpgradeType.Cooldown; // 🔹 กำหนดใบที่ 3
+
     UpgradeType[] currentOptions = new UpgradeType[3];
-
-    [Header("Scene Upgrades")]
-    public bool useFixedUpgrades = false;
-    [SerializeField] UpgradeType[] fixedUpgrades = new UpgradeType[3];
-
+    int[] currentCosts = new int[3];
     bool isShowing = false;
 
     void Start() { upgradePanel.SetActive(false); }
@@ -54,6 +67,9 @@ public class UpgradeManager : MonoBehaviour
         upgradePanel.SetActive(true);
         Time.timeScale = 0f;
         GenerateUpgrades();
+
+        StopAllCoroutines();
+        StartCoroutine(AutoRefreshRoutine());
     }
 
     public void HideUpgradePanel()
@@ -61,47 +77,130 @@ public class UpgradeManager : MonoBehaviour
         upgradePanel.SetActive(false);
         Time.timeScale = 1f;
         isShowing = false;
+        StopAllCoroutines();
+    }
+
+    public void CloseAndProceed()
+    {
+        if (playerStats != null) playerStats.Save();
+        HideUpgradePanel();
+        OnUpgradeComplete?.Invoke();
+    }
+
+    IEnumerator AutoRefreshRoutine()
+    {
+        while (isShowing)
+        {
+            RefreshButtonInteractable();
+            yield return new WaitForSecondsRealtime(2f);
+        }
+    }
+
+    public void RefreshButtonInteractable()
+    {
+        if (playerLife == null || !upgradePanel.activeSelf) return;
+        option1Button.interactable = (playerLife.money >= currentCosts[0]);
+        option2Button.interactable = (playerLife.money >= currentCosts[1]);
+        option3Button.interactable = (playerLife.money >= currentCosts[2]);
     }
 
     void GenerateUpgrades()
     {
-        // 1. Logic การสุ่ม
-        if (useFixedUpgrades && fixedUpgrades.Length >= 3)
+        if (useFixedUpgrades)
         {
-            for (int i = 0; i < 3; i++) currentOptions[i] = fixedUpgrades[i];
+            // 🔹 ดึงค่าจากที่เรากำหนดไว้ใน Inspector
+            currentOptions[0] = option1Type;
+            currentOptions[1] = option2Type;
+            currentOptions[2] = option3Type;
         }
         else
         {
+            // 🎲 ถ้าไม่ติ๊ก Fixed ก็จะสุ่มเหมือนเดิม
             for (int i = 0; i < 3; i++)
+            {
                 currentOptions[i] = (UpgradeType)UnityEngine.Random.Range(0, Enum.GetValues(typeof(UpgradeType)).Length);
+            }
         }
 
-        // 2. อัปเดตข้อความ
+        // คำนวณราคาและอัปเดต UI เหมือนเดิม
+        for (int i = 0; i < 3; i++)
+        {
+            currentCosts[i] = GetCost(currentOptions[i]);
+        }
+
         option1Text.text = GetUpgradeName(currentOptions[0]);
         option2Text.text = GetUpgradeName(currentOptions[1]);
         option3Text.text = GetUpgradeName(currentOptions[2]);
 
-        // 🔥 3. ส่งรูป Sprite ไปอัปเดตภาพหน้าการ์ดตรงๆ ทันที ( No Flip)
+        option1CostText.text = "Cost: " + currentCosts[0];
+        option2CostText.text = "Cost: " + currentCosts[1];
+        option3CostText.text = "Cost: " + currentCosts[2];
+
         UpdateCardVisuals(card1Visual, currentOptions[0]);
         UpdateCardVisuals(card2Visual, currentOptions[1]);
         UpdateCardVisuals(card3Visual, currentOptions[2]);
 
-        // 4. Setup ปุ่ม (เขียนให้ครบทั้ง 3 ปุ่ม)
-        option1Button.onClick.RemoveAllListeners();
-        option2Button.onClick.RemoveAllListeners();
-        option3Button.onClick.RemoveAllListeners();
-
-        option1Button.onClick.AddListener(() => ApplyUpgrade(currentOptions[0]));
-        option2Button.onClick.AddListener(() => ApplyUpgrade(currentOptions[1]));
-        option3Button.onClick.AddListener(() => ApplyUpgrade(currentOptions[2]));
+        RefreshButtonInteractable();
     }
 
-    // ฟังก์ชันสำหรับลากใส่ปุ่มใน Inspector
-    public void SelectOption1() { ApplyUpgrade(currentOptions[0]); }
-    public void SelectOption2() { ApplyUpgrade(currentOptions[1]); }
-    public void SelectOption3() { ApplyUpgrade(currentOptions[2]); }
+    public void SelectOption1() { ApplyUpgrade(0); }
+    public void SelectOption2() { ApplyUpgrade(1); }
+    public void SelectOption3() { ApplyUpgrade(2); }
 
-    // เปลี่ยนชื่อ Parameter เป็น CardVisualUI
+    void ApplyUpgrade(int index)
+    {
+        UpgradeType type = currentOptions[index];
+        int cost = currentCosts[index];
+
+        if (playerLife != null && playerLife.money >= cost)
+        {
+            playerLife.money -= cost;
+            playerLife.UpdateMoneyUI_Public();
+        }
+        else return;
+
+        switch (type)
+        {
+            case UpgradeType.Speed: playerStats.speedLevel++; playerStats.runSpeed += speedUpgradeAmount; break;
+            case UpgradeType.Jump: playerStats.jumpLevel++; playerStats.jumpForce += jumpUpgradeAmount; break;
+            case UpgradeType.Cooldown: playerStats.cooldownLevel++; playerStats.bodySwapCooldown -= cooldownReduceAmount; break;
+            case UpgradeType.CloneRange: playerStats.rangeLevel++; playerStats.cloneRange += cloneRangeUpgradeAmount; break;
+            case UpgradeType.AttackSpeed: playerStats.attackChargeLevel++; playerStats.attackChargeTime -= attackSpeedReduceAmount; break;
+            case UpgradeType.DoubleJump: playerStats.canDoubleJump = true; break;
+        }
+
+        playerStats.Save();
+        CloseAndProceed();
+    }
+
+    int GetCost(UpgradeType type)
+    {
+        switch (type)
+        {
+            case UpgradeType.Speed: return speedCost;
+            case UpgradeType.Jump: return jumpCost;
+            case UpgradeType.Cooldown: return cooldownCost;
+            case UpgradeType.CloneRange: return cloneRangeCost;
+            case UpgradeType.AttackSpeed: return attackSpeedCost;
+            case UpgradeType.DoubleJump: return doubleJumpCost;
+            default: return 0;
+        }
+    }
+
+    string GetUpgradeName(UpgradeType type)
+    {
+        switch (type)
+        {
+            case UpgradeType.Speed: return "Speed UP";
+            case UpgradeType.Jump: return "Jump UP";
+            case UpgradeType.Cooldown: return "Skill CD Down";
+            case UpgradeType.CloneRange: return "Range UP";
+            case UpgradeType.AttackSpeed: return "Attack Speed UP";
+            case UpgradeType.DoubleJump: return "Double Jump";
+            default: return "";
+        }
+    }
+
     void UpdateCardVisuals(CardVisualUI cardVisual, UpgradeType type)
     {
         if (cardVisual == null) return;
@@ -116,40 +215,5 @@ public class UpgradeManager : MonoBehaviour
             case UpgradeType.DoubleJump: s = doubleJumpSprite; break;
         }
         cardVisual.SetCardVisual(s);
-    }
-
-    string GetUpgradeName(UpgradeType type)
-    {
-        switch (type)
-        {
-            case UpgradeType.Speed: return "Increase Speed";
-            case UpgradeType.Jump: return "Increase Jump";
-            case UpgradeType.Cooldown: return "Reduce Shadow Cooldown";
-            case UpgradeType.CloneRange: return "Increase Clone Range";
-            case UpgradeType.AttackSpeed: return "Faster Exorcise";
-            case UpgradeType.DoubleJump: return "Unlock Double Jump";
-        }
-        return "";
-    }
-
-    void ApplyUpgrade(UpgradeType type)
-    {
-        switch (type)
-        {
-            case UpgradeType.Speed: playerStats.runSpeed += speedUpgradeAmount; break;
-            case UpgradeType.Jump: playerStats.jumpForce += jumpUpgradeAmount; break;
-            case UpgradeType.Cooldown:
-                playerStats.bodySwapCooldown -= cooldownReduceAmount;
-                if (playerStats.bodySwapCooldown < 1f) playerStats.bodySwapCooldown = 1f;
-                break;
-            case UpgradeType.CloneRange: playerStats.cloneRange += cloneRangeUpgradeAmount; break;
-            case UpgradeType.AttackSpeed:
-                playerStats.attackChargeTime -= attackSpeedReduceAmount;
-                if (playerStats.attackChargeTime < 0.5f) playerStats.attackChargeTime = 0.5f;
-                break;
-            case UpgradeType.DoubleJump: playerStats.canDoubleJump = true; break;
-        }
-        HideUpgradePanel();
-        OnUpgradeComplete?.Invoke();
     }
 }

@@ -34,7 +34,7 @@ public class CutsceneController : MonoBehaviour
         else
         {
             // ไป Scene ใหม่
-            SceneManager.LoadScene("GameScene"); // เปลี่ยนชื่อ Scene ตามที่ใช้
+            SceneManager.LoadScene("M1"); // เปลี่ยนชื่อ Scene ตามที่ใช้
         }
     }
 }

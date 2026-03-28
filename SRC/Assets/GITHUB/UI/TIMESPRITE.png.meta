@@ -1,0 +1,1174 @@
+fileFormatVersion: 2
+guid: ad7ef5769029f1c48ab79a0bd72201ff
+TextureImporter:
+  internalIDToNameTable: []
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: TIMESPRITE_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1644
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 47fb901ee64493048bfe09dabadf7d8a
+      internalID: -1860473127
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_1
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 1644
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cc08e8b7ae44abf48a31100d73aea4bb
+      internalID: 1077510057
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_2
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 1644
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d0fe3c5eb4c3ce24a8f5c8f39f7ec54d
+      internalID: 1017230665
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_3
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 1644
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9d0fc245a0770624888974cfbdebefa0
+      internalID: 380869268
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_4
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 1644
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6d84e9a281a558b42b2c9f178a98e676
+      internalID: -432231388
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_5
+      rect:
+        serializedVersion: 2
+        x: 1230
+        y: 1644
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e32cee513ffad5b4a8cfba51b2d2b676
+      internalID: 1810785204
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_6
+      rect:
+        serializedVersion: 2
+        x: 1476
+        y: 1644
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e89ff9da9d401e24f920ad8bd42564b3
+      internalID: 2122582081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_7
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1370
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b4f3ce11df6f0bb41b06b801bc0af897
+      internalID: -998171084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_8
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 1370
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 25c5216aae9e619409b5905a3a2f301a
+      internalID: -1492973901
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_9
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 1370
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 55ffb452cf11f5f4a9e1ec588b9e7c6b
+      internalID: 906850063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_10
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 1370
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a4e94b643e8523c4083d623bbc7cef6a
+      internalID: -118371454
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_11
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 1370
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 245201d4920876c4394a47c305207dc5
+      internalID: -75299164
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_12
+      rect:
+        serializedVersion: 2
+        x: 1230
+        y: 1370
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 410381ed9323de14ebef0df9e4396df2
+      internalID: -749067723
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_13
+      rect:
+        serializedVersion: 2
+        x: 1476
+        y: 1370
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b8bf68c825c0834e90090272b5dffcb
+      internalID: 1437594280
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_14
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1096
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 98c4d28c28f496442a852d7f69a704f4
+      internalID: -442445181
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_15
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 1096
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da35acf750c17b24d95b67473e1394d6
+      internalID: 1232702510
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_16
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 1096
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1e9517c322779e444890fb3abcef2f44
+      internalID: 1893454224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_17
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 1096
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 37fc748b7ee6b5946a6a6314ead63590
+      internalID: -998238224
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_18
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 1096
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 151702b259e5a3d4784bbcdb86ae0843
+      internalID: 493198539
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_19
+      rect:
+        serializedVersion: 2
+        x: 1230
+        y: 1096
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ce641bcd5097ff143b0bf3273edc9996
+      internalID: -1593087619
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_20
+      rect:
+        serializedVersion: 2
+        x: 1476
+        y: 1096
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7d6a62f53a4528b4598373afbe871ce0
+      internalID: -887002382
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_21
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 822
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 40839d3147463954c8061a3032ae79fc
+      internalID: 1467549567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_22
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 822
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e3ac0b3215edd544ea000cbd4f32cbc3
+      internalID: -1508159851
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_23
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 822
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a8bfc0bdef7e28349ad1fe145c3395e3
+      internalID: 1066448484
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_24
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 822
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a3cf1017feb783449624312fbec827b
+      internalID: 272258824
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_25
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 822
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57fba5520164b1c43b817c32239f8817
+      internalID: 76137844
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_26
+      rect:
+        serializedVersion: 2
+        x: 1230
+        y: 822
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1527b766fe3f939499777b342e2240fa
+      internalID: 1748526421
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_27
+      rect:
+        serializedVersion: 2
+        x: 1476
+        y: 822
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5d1a8be43670eba48bb6381628e42f2e
+      internalID: 1577788680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_28
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 548
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6b4b50fbf96f3fb4483cab651863fb0c
+      internalID: 1977257748
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_29
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 548
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9f84dc15b1cfec545984c1159869621e
+      internalID: -1221425890
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_30
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 548
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a366735feacbb9c478210eea6e4ebbaf
+      internalID: 1451602249
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_31
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 548
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7d09ae7e79000b746b7b3528ad0298bc
+      internalID: 275793384
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_32
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 548
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c2b5570881a07b14eae60c40fafdfa93
+      internalID: -75536227
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_33
+      rect:
+        serializedVersion: 2
+        x: 1230
+        y: 548
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb6a0e146c4fb264a8fc7a11044d48de
+      internalID: 158524671
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_34
+      rect:
+        serializedVersion: 2
+        x: 1476
+        y: 548
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 230afbc0309d27346a7b4d42cfee6a43
+      internalID: 990192843
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_35
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 274
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c5d20b762b91f344a92c4c06970211ac
+      internalID: 1830287637
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_36
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 274
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c09dedd638450b4197318f481d5e350
+      internalID: -639367635
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_37
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 274
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 57ff8d2fff2b81840957af989972ab17
+      internalID: -1271166985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_38
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 274
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b49cb6e61116eb64f9901a6c55830663
+      internalID: -1221672368
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_39
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 274
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec5885fdc8824cf428bfa8fb52b9af48
+      internalID: 1419108693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_40
+      rect:
+        serializedVersion: 2
+        x: 1230
+        y: 274
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 15bc92c54b6f7634d9fcce52066ef9e2
+      internalID: -1291742200
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_41
+      rect:
+        serializedVersion: 2
+        x: 1476
+        y: 274
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 10e01af010bdda145b59c6918d0552cd
+      internalID: 738236109
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_42
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4a0dd674661a69244a9a1b50c5b1777e
+      internalID: 347641610
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_43
+      rect:
+        serializedVersion: 2
+        x: 246
+        y: 0
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ff6b0cfbe2ba0714dbeb76e08b292022
+      internalID: -1787567604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_44
+      rect:
+        serializedVersion: 2
+        x: 492
+        y: 0
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 243513342f526824988bfb411b964ec3
+      internalID: -1387299780
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_45
+      rect:
+        serializedVersion: 2
+        x: 738
+        y: 0
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c1c87c2c288bb434daae162a01edd01b
+      internalID: -1143928337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TIMESPRITE_46
+      rect:
+        serializedVersion: 2
+        x: 984
+        y: 0
+        width: 246
+        height: 274
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6dd392332cac02b47879290ed4223d2a
+      internalID: -2051299294
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      TIMESPRITE_0: -1860473127
+      TIMESPRITE_1: 1077510057
+      TIMESPRITE_10: -118371454
+      TIMESPRITE_11: -75299164
+      TIMESPRITE_12: -749067723
+      TIMESPRITE_13: 1437594280
+      TIMESPRITE_14: -442445181
+      TIMESPRITE_15: 1232702510
+      TIMESPRITE_16: 1893454224
+      TIMESPRITE_17: -998238224
+      TIMESPRITE_18: 493198539
+      TIMESPRITE_19: -1593087619
+      TIMESPRITE_2: 1017230665
+      TIMESPRITE_20: -887002382
+      TIMESPRITE_21: 1467549567
+      TIMESPRITE_22: -1508159851
+      TIMESPRITE_23: 1066448484
+      TIMESPRITE_24: 272258824
+      TIMESPRITE_25: 76137844
+      TIMESPRITE_26: 1748526421
+      TIMESPRITE_27: 1577788680
+      TIMESPRITE_28: 1977257748
+      TIMESPRITE_29: -1221425890
+      TIMESPRITE_3: 380869268
+      TIMESPRITE_30: 1451602249
+      TIMESPRITE_31: 275793384
+      TIMESPRITE_32: -75536227
+      TIMESPRITE_33: 158524671
+      TIMESPRITE_34: 990192843
+      TIMESPRITE_35: 1830287637
+      TIMESPRITE_36: -639367635
+      TIMESPRITE_37: -1271166985
+      TIMESPRITE_38: -1221672368
+      TIMESPRITE_39: 1419108693
+      TIMESPRITE_4: -432231388
+      TIMESPRITE_40: -1291742200
+      TIMESPRITE_41: 738236109
+      TIMESPRITE_42: 347641610
+      TIMESPRITE_43: -1787567604
+      TIMESPRITE_44: -1387299780
+      TIMESPRITE_45: -1143928337
+      TIMESPRITE_46: -2051299294
+      TIMESPRITE_5: 1810785204
+      TIMESPRITE_6: 2122582081
+      TIMESPRITE_7: -998171084
+      TIMESPRITE_8: -1492973901
+      TIMESPRITE_9: 906850063
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

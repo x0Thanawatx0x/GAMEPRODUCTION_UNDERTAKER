@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections.Generic;
 using TMPro;
 
 public class PlayerStatusUI : MonoBehaviour
@@ -6,57 +8,59 @@ public class PlayerStatusUI : MonoBehaviour
     public GameObject statusPanel;
     public PlayerStats stats;
 
-    [Header("UI Text Elements")]
-    public TextMeshProUGUI runSpeedText;
-    public TextMeshProUGUI jumpForceText;
-    public TextMeshProUGUI doubleJumpText;
-    public TextMeshProUGUI cooldownText;
+    [System.Serializable]
+    public class StatSlotGroup
+    {
+        public List<Image> slots; // ลาก Image ช่องๆ มาใส่ใน Inspector
+        public Color activeColor = Color.white;
+        public Color inactiveColor = new Color(1, 1, 1, 0.2f);
+    }
 
-    // 🔥 เพิ่มส่วนที่ขาดไป
-    public TextMeshProUGUI cloneRangeText;
-    public TextMeshProUGUI attackChargeText;
+    [Header("UI Slot Groups")]
+    public StatSlotGroup speedGroup;
+    public StatSlotGroup jumpGroup;
+    public StatSlotGroup cooldownGroup;
+    public StatSlotGroup rangeGroup;
+    public StatSlotGroup attackChargeGroup;
+
+    [Header("Other UI")]
+    public TextMeshProUGUI doubleJumpText;
 
     bool isOpen = false;
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            ToggleStatus();
-        }
+        if (Input.GetKeyDown(KeyCode.I)) ToggleStatus();
     }
 
     void ToggleStatus()
     {
         isOpen = !isOpen;
         statusPanel.SetActive(isOpen);
-
-        if (isOpen)
-        {
-            Time.timeScale = 0; // หยุดเกมชั่วขณะ
-            UpdateUI();
-        }
-        else
-        {
-            Time.timeScale = 1; // เล่นเกมต่อ
-        }
+        Time.timeScale = isOpen ? 0 : 1;
+        if (isOpen) UpdateUI();
     }
 
     void UpdateUI()
     {
-        // ตรวจสอบเผื่อลืมลาก ScriptableObject มาใส่ใน Inspector
         if (stats == null) return;
 
-        runSpeedText.text = "Run Speed : " + stats.runSpeed.ToString("F1");
-        jumpForceText.text = "Jump Force : " + stats.jumpForce.ToString("F1");
-        doubleJumpText.text = "Double Jump : " + (stats.canDoubleJump ? "Yes" : "No");
-        cooldownText.text = "Body Swap CD : " + stats.bodySwapCooldown.ToString("F1") + "s";
+        // อัปเดตสีของช่อง Image ตามเลเวลปัจจุบัน
+        UpdateSlots(speedGroup, stats.speedLevel);
+        UpdateSlots(jumpGroup, stats.jumpLevel);
+        UpdateSlots(cooldownGroup, stats.cooldownLevel);
+        UpdateSlots(rangeGroup, stats.rangeLevel);
+        UpdateSlots(attackChargeGroup, stats.attackChargeLevel);
 
-        // 🔥 แสดงค่าใหม่ที่เพิ่มเข้ามา
-        if (cloneRangeText != null)
-            cloneRangeText.text = "Clone Range : " + stats.cloneRange.ToString("F1");
+        if (doubleJumpText != null)
+            doubleJumpText.text = "Double Jump : " + (stats.canDoubleJump ? "YES" : "NO");
+    }
 
-        if (attackChargeText != null)
-            attackChargeText.text = "Attack Charge : " + stats.attackChargeTime.ToString("F1") + "s";
+    void UpdateSlots(StatSlotGroup group, int currentLevel)
+    {
+        for (int i = 0; i < group.slots.Count; i++)
+        {
+            group.slots[i].color = (i < currentLevel) ? group.activeColor : group.inactiveColor;
+        }
     }
 }
