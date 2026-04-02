@@ -333,12 +333,26 @@ public class PlayerControllerMain : MonoBehaviour
     IEnumerator AttackRoutine()
     {
         bool wasLocked = lockAnimation;
+
         lockAnimation = true;
         canMove = false;
+
         Vector2 originalVelocity = rb.velocity;
         rb.velocity = Vector2.zero;
-        animator.Play("Attack", 0, 0);
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+
+        // 🔥 เล่นจากเฟรมแรก
+        animator.Play("Attack", 0, 0f);
+
+        // 🔥 รอให้ animation เข้า state ก่อน (สำคัญมาก)
+        yield return null;
+
+        // 🔥 ดึงเวลาจริงของ animation
+        float animLength = animator.GetCurrentAnimatorStateInfo(0).length;
+
+        // 🔥 รอจนเล่นจบ
+        yield return new WaitForSeconds(animLength);
+
+        // 🔥 ปลดล็อค
         rb.velocity = originalVelocity;
         lockAnimation = wasLocked;
         canMove = true;
@@ -353,12 +367,21 @@ public class PlayerControllerMain : MonoBehaviour
     {
         lockAnimation = true;
         canMove = false;
+
         Vector2 originalVelocity = rb.velocity;
         rb.velocity = Vector2.zero;
-        animator.Play("FinishAttack", 0, 1f);
-        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
-        rb.velocity = originalVelocity;
-        lockAnimation = false;
-        canMove = true;
+
+        // 🔥 เล่น animation จากเฟรมแรก
+        animator.Play("FinishAttack", 0, 0f);
+
+        // 🔥 รอให้ animation เล่นจริง (ใส่เวลาจริงของคลิป เช่น 0.6f - 1f)
+        yield return new WaitForSeconds(0.7f);
+
+        // 🔥 ค้างเฟรมสุดท้าย
+        animator.speed = 0f;
+
+        // ❌ ไม่ต้องปลด lock ไม่งั้นโดน Idle ทับ
+        // lockAnimation = false;
+        // canMove = true;
     }
 }

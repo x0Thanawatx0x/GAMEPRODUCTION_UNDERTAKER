@@ -33,7 +33,7 @@ public class MonsterAI : MonoBehaviour
     public AudioClip chargeSound;
     public AudioClip attackSound;
     public AudioClip dieSound;
-    [Range(0, 1)] public float maxVolume = 1f; // ระดับเสียงสูงสุดที่ยอมให้ดังได้
+    [Range(0, 1)] public float maxVolume = 1f;
 
     [Header("E Prompt")]
     public GameObject ePrompt;
@@ -66,7 +66,6 @@ public class MonsterAI : MonoBehaviour
 
     void Update()
     {
-        // 🔥 ส่วนใหม่: อัปเดตระดับเสียงตามระยะห่าง (ยิ่งใกล้มากยิ่งดังมาก)
         UpdateSoundVolume();
 
         if (ePrompt != null)
@@ -96,7 +95,7 @@ public class MonsterAI : MonoBehaviour
 
                 if (holdETimer >= playerStats.attackChargeTime)
                 {
-                    StartCoroutine(PlayDieAnimationThenFade());
+                    StartCoroutine(PlayDieAnimationThenFreeze()); // 🔥 เปลี่ยนตรงนี้
                     holdETimer = 0f;
 
                     if (chargeSlider != null)
@@ -135,7 +134,6 @@ public class MonsterAI : MonoBehaviour
         }
     }
 
-    // 🔥 ฟังก์ชันคำนวณระดับเสียง
     void UpdateSoundVolume()
     {
         if (player == null || audioSource == null || currentState == State.Die) return;
@@ -144,7 +142,6 @@ public class MonsterAI : MonoBehaviour
 
         if (dist <= detectRange)
         {
-            // ยิ่งระยะห่างน้อย (ใกล้) ค่า volume ยิ่งเข้าใกล้ 1
             float volumeLevel = 1f - (dist / detectRange);
             audioSource.volume = Mathf.Clamp01(volumeLevel * maxVolume);
         }
@@ -217,7 +214,7 @@ public class MonsterAI : MonoBehaviour
             case State.Idle: anim.Play("MIdle"); break;
             case State.Charge: anim.Play("MCharge"); break;
             case State.Attack: anim.Play("MAttack"); break;
-            case State.Die: anim.Play("DieM"); break;
+            case State.Die: anim.Play("DieM", 0, 0f); break; // 🔥 บังคับเริ่มต้นที่เฟรมแรก
         }
     }
 
@@ -237,7 +234,6 @@ public class MonsterAI : MonoBehaviour
 
         if (clipToPlay != null)
         {
-            // ถ้าเป็นคลิปเดิมที่กำลังเล่นอยู่ (เช่น Idle) ไม่ต้องสั่ง Play ใหม่เพื่อป้องกันเสียงกระตุก
             if (audioSource.clip == clipToPlay && audioSource.isPlaying) return;
 
             audioSource.clip = clipToPlay;
@@ -246,7 +242,8 @@ public class MonsterAI : MonoBehaviour
         }
     }
 
-    IEnumerator PlayDieAnimationThenFade()
+    // 🔥 ตัวใหม่: เล่นแล้ว "ค้างเฟรมสุดท้าย"
+    IEnumerator PlayDieAnimationThenFreeze()
     {
         SetState(State.Die);
 
@@ -259,7 +256,18 @@ public class MonsterAI : MonoBehaviour
             }
         }
 
-        float alpha = spriteRenderer.color.a;
+        // 🔥 รอให้ Animator เข้า state ก่อน (สำคัญ)
+        yield return null;
+
+        // 🔥 ดึงเวลาจริงของ animation
+        float animLength = anim.GetCurrentAnimatorStateInfo(0).length;
+
+        // 🔥 รอให้ animation เล่นจนจบ
+        yield return new WaitForSeconds(animLength);
+
+        // 🔥 เริ่มจางหาย
+        float alpha = 1f;
+
         while (alpha > 0f)
         {
             alpha -= fadeSpeed * Time.deltaTime;
@@ -267,10 +275,12 @@ public class MonsterAI : MonoBehaviour
             yield return null;
         }
 
+        // 🔥 spawn ของ
         SpawnGhostOrbs();
+
+        // 🔥 ลบทิ้ง
         Destroy(gameObject);
     }
-
     void SpawnGhostOrbs()
     {
         if (ghostOrbPrefab == null) return;

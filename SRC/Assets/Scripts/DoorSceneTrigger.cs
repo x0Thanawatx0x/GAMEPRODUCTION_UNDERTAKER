@@ -19,6 +19,9 @@ public class DoorSceneTrigger : MonoBehaviour
     [Header("Auto Save")]
     public AutoSaveTrigger autoSaveTrigger;
 
+    [Header("Slide Transition")]
+    public SlideTransition slideTransition;
+
     bool triggered = false;
 
     void OnTriggerEnter2D(Collider2D other)
@@ -43,16 +46,22 @@ public class DoorSceneTrigger : MonoBehaviour
 
     IEnumerator PraySequence(PlayerControllerMain player, PlayerLifeManager lifeManager)
     {
-        // ▶ เล่น Pray animation
+        player.EnableControl(false);
+
+        Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        }
+
         player.PlayPray(prayDuration);
 
-        // ⏳ รอ animation
         yield return new WaitForSeconds(prayDuration);
 
-        // 🔥 แปลง Ghost → Money
         lifeManager.ConvertGhostToMoney();
 
-        // 🃏 เปิด Upgrade Panel
         if (upgradeManager != null)
         {
             upgradeManager.OnUpgradeComplete = () =>
@@ -61,18 +70,29 @@ public class DoorSceneTrigger : MonoBehaviour
 
                 if (autoSaveTrigger != null)
                 {
-                    // เรียก Coroutine ของ AutoSaveTrigger เพื่อ Save + แสดง UI
                     StartCoroutine(autoSaveTrigger.SaveProcess(player.transform));
-
-                    // หลัง Save เสร็จ → เปลี่ยน Scene
-                    // ใน AutoSaveTrigger เราจะต้องเพิ่ม callback หรือใช้ Delay นิดหน่อย
                     StartCoroutine(WaitAndLoadNextScene(autoSaveTrigger.finishDelay));
                 }
                 else
                 {
-                    // ถ้าไม่มี AutoSaveTrigger → เปลี่ยน Scene ทันที
                     if (!string.IsNullOrEmpty(nextSceneName))
-                        SceneManager.LoadScene(nextSceneName);
+                    {
+                        // 🔍 DEBUG SLIDE
+                        if (slideTransition != null)
+                        {
+                            Debug.Log("[SLIDE] เริ่ม Slide ไป Scene: " + nextSceneName);
+                            slideTransition.SlideAndLoad(nextSceneName);
+                        }
+                        else
+                        {
+                            Debug.LogWarning("[SLIDE] ไม่มี SlideTransition → ใช้ LoadScene ปกติ");
+                            SceneManager.LoadScene(nextSceneName);
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogError("[SLIDE] nextSceneName ว่าง!");
+                    }
                 }
             };
 
@@ -84,8 +104,26 @@ public class DoorSceneTrigger : MonoBehaviour
 
     IEnumerator WaitAndLoadNextScene(float delay)
     {
-        yield return new WaitForSeconds(delay + 0.5f); // +0.5f ตาม SaveProcess
+        Debug.Log("[SLIDE] รอเวลา Save: " + delay);
+
+        yield return new WaitForSeconds(delay + 0.5f);
+
         if (!string.IsNullOrEmpty(nextSceneName))
-            SceneManager.LoadScene(nextSceneName);
+        {
+            if (slideTransition != null)
+            {
+                Debug.Log("[SLIDE] (After Save) เริ่ม Slide ไป Scene: " + nextSceneName);
+                slideTransition.SlideAndLoad(nextSceneName);
+            }
+            else
+            {
+                Debug.LogWarning("[SLIDE] (After Save) ไม่มี SlideTransition → ใช้ LoadScene");
+                SceneManager.LoadScene(nextSceneName);
+            }
+        }
+        else
+        {
+            Debug.LogError("[SLIDE] (After Save) nextSceneName ว่าง!");
+        }
     }
 }
